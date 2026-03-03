@@ -77,7 +77,7 @@ window.CONFIG = {
   "rsvp": {
     "heading": "Stay in Touch",
     "introText": "If you would like to receive updates or share how you are praying, please leave your contact information below. I'll keep the list focused on ordination news.",
-    "formEmbedUrl": ""
+    "formEmbedUrl": "https://docs.google.com/forms/d/e/1FAIpQLScCI8N3WI2QHIbCI_wKzDG6k8pVN_jXTMxKjOQfwGqWJ1IjlQ/viewform?embedded=true"
   },
   "ordinationMass": {
     "eyebrow": "Mass of Ordination",
