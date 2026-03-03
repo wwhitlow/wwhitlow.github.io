@@ -159,7 +159,7 @@
       localStorage.setItem(TOKEN_KEY, token);
       localStorage.setItem(REPO_KEY,  repo);
       document.body.removeChild(dialog);
-      performSave(token, repo);
+      if (callback) callback(token, repo);
     });
   }
 
@@ -368,9 +368,19 @@
     setStatus('Disconnected from GitHub. Click Save to reconnect.', false);
   }
 
+  // ── Connect without saving — shows the token dialog, then unlocks the panel ─
+  function connect() {
+    showTokenSetup(function () {
+      if (window.SETTINGS && typeof window.SETTINGS.refreshLock === 'function') {
+        window.SETTINGS.refreshLock();
+      }
+    });
+  }
+
   window.GITHUB = {
     save:       save,
     disconnect: disconnect,
+    connect:    connect,
   };
 
 }());

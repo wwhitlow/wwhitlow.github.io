@@ -35,6 +35,16 @@
     '  <button class="sp-close" id="spClose" aria-label="Close settings">&times;</button>',
     '</div>',
 
+    // Lock banner — shown when no GitHub token is stored; hidden via JS when unlocked
+    '<div class="sp-lock-banner" id="spLockBanner" style="display:none">',
+    '  <div class="sp-lock-banner-icon">&#128274;</div>',
+    '  <div class="sp-lock-banner-body">',
+    '    <strong>Connect GitHub to edit settings</strong>',
+    '    <p>Link your repository once to unlock all settings and save changes to your live site.</p>',
+    '    <button class="sp-connect-btn" id="spConnectBtn">Connect to GitHub &rsaquo;</button>',
+    '  </div>',
+    '</div>',
+
     // Tab bar
     '<nav class="sp-tabs" role="tablist">',
     '  <button class="sp-tab active" data-tab="identity"   role="tab">Identity</button>',
@@ -269,6 +279,44 @@
     youtubeEmbed:   'YouTube Embed',
   };
 
+  // ── Auth helpers ────────────────────────────────────────────────────────
+  function isLocked() {
+    return !localStorage.getItem('gh_pat');
+  }
+
+  // Enable or disable all editable fields based on whether a PAT is stored.
+  // The Appearance tab (theme swatches) is always usable — no data-path inputs there.
+  function applyLockState() {
+    var panel = document.getElementById('settingsPanel');
+    if (!panel) return;
+
+    var locked = isLocked();
+    var banner = document.getElementById('spLockBanner');
+    if (banner) banner.style.display = locked ? 'flex' : 'none';
+
+    // Disable/enable all data-path inputs that are NOT in the appearance tab
+    panel.querySelectorAll('[data-path]').forEach(function (el) {
+      var tabContent = el.closest('[data-panel]');
+      var isAppearance = tabContent && tabContent.dataset.panel === 'appearance';
+      if (!isAppearance) el.disabled = locked;
+    });
+
+    // Disable/enable Add Elements buttons
+    panel.querySelectorAll('.sp-add-btn').forEach(function (btn) {
+      btn.disabled = locked;
+    });
+
+    // Wire the Connect button (use .onclick to avoid stacking listeners)
+    var connectBtn = document.getElementById('spConnectBtn');
+    if (connectBtn) {
+      connectBtn.onclick = function () {
+        if (window.GITHUB && typeof window.GITHUB.connect === 'function') {
+          window.GITHUB.connect();
+        }
+      };
+    }
+  }
+
   // ── Render the list of added extra elements (or the edit form) ─────────
   function renderExtrasList() {
     var list = document.getElementById('sp-extras-list');
@@ -333,14 +381,16 @@
       return;
     }
 
+    var locked  = isLocked();
     var html = extras.map(function (el, i) {
-      var label = el.heading || el.reference || el.type;
+      var label   = el.heading || el.reference || el.type;
+      var disAttr = locked ? ' disabled' : '';
       return [
         '<div class="sp-extra-row">',
         '  <span>' + (TYPE_LABELS[el.type] || el.type) + (label && label !== el.type ? ' \u2014 ' + label : '') + '</span>',
         '  <div class="sp-extra-btns">',
-        '    <button class="sp-edit-btn"   data-index="' + i + '">Edit</button>',
-        '    <button class="sp-remove-btn" data-index="' + i + '">Remove</button>',
+        '    <button class="sp-edit-btn"' + disAttr + '   data-index="' + i + '">Edit</button>',
+        '    <button class="sp-remove-btn"' + disAttr + ' data-index="' + i + '">Remove</button>',
         '  </div>',
         '</div>',
       ].join('\n');
@@ -390,6 +440,7 @@
     });
 
     renderExtrasList();
+    applyLockState();
   }
 
   // ── Bind all inputs so every change updates CONFIG + re-renders ────────
@@ -519,8 +570,14 @@
     el.style.color = isError ? '#c0392b' : '#27ae60';
   }
 
+  // Re-apply lock state after a token is stored (called by github.js connect flow)
+  function refreshLock() {
+    applyLockState();
+    renderExtrasList();
+  }
+
   // Expose setStatus so github.js can update the panel footer
-  window.SETTINGS = { setStatus: setStatus };
+  window.SETTINGS = { setStatus: setStatus, refreshLock: refreshLock };
 
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {
