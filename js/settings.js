@@ -25,6 +25,19 @@
     cur[parts[parts.length - 1]] = value;
   }
 
+  // ── Countdown date helpers ─────────────────────────────────────────────
+  // Split "2026-05-23T10:00:00-04:00" into its three parts and back again.
+  function parseCountdownDate(isoStr) {
+    var m = (isoStr || '').match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(?::\d{2})?([-+]\d{2}:\d{2}|Z)?/);
+    if (!m) return { date: '', time: '10:00', tz: '-05:00' };
+    return { date: m[1], time: m[2], tz: m[3] === 'Z' ? '+00:00' : (m[3] || '-05:00') };
+  }
+
+  function buildCountdownISO(date, time, tz) {
+    if (!date || !time) return '';
+    return date + 'T' + time + ':00' + (tz || '-05:00');
+  }
+
   // ── Panel HTML ─────────────────────────────────────────────────────────
   // Uses a template string for readability. All dynamic values are
   // populated in populatePanel() — nothing from CONFIG is injected here.
@@ -80,10 +93,40 @@
     '  <p class="sp-hint">Edit the dates, times, and locations for your events.</p>',
 
     '  <p class="sp-section-heading">Countdown Timer</p>',
+    '  <div class="sp-field">',
+    '    <span>Target Date &amp; Time</span>',
+    '    <div class="sp-date-time-row">',
+    '      <input type="date" id="sp-cd-date" aria-label="Event date">',
+    '      <input type="time" id="sp-cd-time" aria-label="Event time">',
+    '    </div>',
+    '  </div>',
     '  <label class="sp-field">',
-    '    <span>Target Date & Time (ISO format with timezone)</span>',
-    '    <input type="text" data-path="countdown.targetDate" placeholder="2026-05-23T10:00:00-04:00">',
+    '    <span>Timezone</span>',
+    '    <select id="sp-cd-tz">',
+    '      <optgroup label="United States">',
+    '        <option value="-10:00">UTC-10 \u00b7 Hawaii (HST)</option>',
+    '        <option value="-09:00">UTC-9 \u00b7 Alaska Standard (AKST)</option>',
+    '        <option value="-08:00">UTC-8 \u00b7 Pacific Standard (PST) / Alaska Daylight (AKDT)</option>',
+    '        <option value="-07:00">UTC-7 \u00b7 Mountain Standard (MST) / Pacific Daylight (PDT)</option>',
+    '        <option value="-06:00">UTC-6 \u00b7 Central Standard (CST) / Mountain Daylight (MDT)</option>',
+    '        <option value="-05:00">UTC-5 \u00b7 Eastern Standard (EST) / Central Daylight (CDT)</option>',
+    '        <option value="-04:00">UTC-4 \u00b7 Eastern Daylight (EDT) / Atlantic Standard (AST)</option>',
+    '      </optgroup>',
+    '      <optgroup label="International">',
+    '        <option value="-03:00">UTC-3 \u00b7 Atlantic Daylight / Brazil</option>',
+    '        <option value="+00:00">UTC+0 \u00b7 Greenwich Mean Time (GMT)</option>',
+    '        <option value="+01:00">UTC+1 \u00b7 British Summer (BST) / Central Europe winter</option>',
+    '        <option value="+02:00">UTC+2 \u00b7 Central European Summer (CEST)</option>',
+    '        <option value="+03:00">UTC+3 \u00b7 Moscow / East Africa</option>',
+    '        <option value="+05:30">UTC+5:30 \u00b7 India (IST)</option>',
+    '        <option value="+08:00">UTC+8 \u00b7 China / Singapore</option>',
+    '        <option value="+09:00">UTC+9 \u00b7 Japan (JST) / Korea (KST)</option>',
+    '        <option value="+10:00">UTC+10 \u00b7 Australia Eastern (AEST)</option>',
+    '        <option value="+12:00">UTC+12 \u00b7 New Zealand (NZST)</option>',
+    '      </optgroup>',
+    '    </select>',
     '  </label>',
+    '  <p class="sp-hint">US Eastern is UTC-5 in winter (Nov\u2013Mar) and UTC-4 in summer (Mar\u2013Nov).</p>',
     '  <label class="sp-field">',
     '    <span>Countdown Reflection Text</span>',
     '    <textarea rows="3" data-path="countdown.reflectionText"></textarea>',
@@ -306,6 +349,12 @@
       btn.disabled = locked;
     });
 
+    // Disable/enable custom countdown inputs (no data-path, handled separately)
+    ['sp-cd-date', 'sp-cd-time', 'sp-cd-tz'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.disabled = locked;
+    });
+
     // Wire the Connect button (use .onclick to avoid stacking listeners)
     var connectBtn = document.getElementById('spConnectBtn');
     if (connectBtn) {
@@ -433,6 +482,15 @@
       }
     });
 
+    // Populate countdown date / time / timezone (custom inputs — not data-path bound)
+    var cdParsed = parseCountdownDate(getPath(window.CONFIG, 'countdown.targetDate'));
+    var cdDateEl = document.getElementById('sp-cd-date');
+    var cdTimeEl = document.getElementById('sp-cd-time');
+    var cdTzEl   = document.getElementById('sp-cd-tz');
+    if (cdDateEl) cdDateEl.value = cdParsed.date;
+    if (cdTimeEl) cdTimeEl.value = cdParsed.time;
+    if (cdTzEl)   { cdTzEl.value = cdParsed.tz; if (!cdTzEl.value) cdTzEl.value = '-05:00'; }
+
     // Mark the active theme swatch
     var currentTheme = window.CONFIG.appearance.theme || 'burgundy';
     panel.querySelectorAll('.sp-swatch').forEach(function (btn) {
@@ -454,6 +512,25 @@
         window.PAGE.render();
       });
     });
+
+    // Countdown date / time / timezone → rebuild ISO string in CONFIG
+    (function () {
+      var cdDateEl = panel.querySelector('#sp-cd-date');
+      var cdTimeEl = panel.querySelector('#sp-cd-time');
+      var cdTzEl   = panel.querySelector('#sp-cd-tz');
+      function syncCountdown() {
+        var iso = buildCountdownISO(
+          cdDateEl ? cdDateEl.value : '',
+          cdTimeEl ? cdTimeEl.value : '',
+          cdTzEl   ? cdTzEl.value   : '-05:00'
+        );
+        setPath(window.CONFIG, 'countdown.targetDate', iso);
+        window.PAGE.render();
+      }
+      if (cdDateEl) cdDateEl.addEventListener('change', syncCountdown);
+      if (cdTimeEl) cdTimeEl.addEventListener('change', syncCountdown);
+      if (cdTzEl)   cdTzEl.addEventListener('change',  syncCountdown);
+    }());
 
     // Theme swatch buttons
     panel.querySelectorAll('.sp-swatch').forEach(function (btn) {
