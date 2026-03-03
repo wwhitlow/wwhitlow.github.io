@@ -213,6 +213,19 @@
           '</section>',
         ].join('\n');
 
+      case 'announcementTitle':
+        return [
+          '<section class="announcement-title-block">',
+          '  <div class="atb-inner">',
+          '    <div class="atb-rule"></div>',
+          el.prefix ? '    <p class="atb-prefix">' + esc(el.prefix) + '</p>' : '',
+          '    <h2 class="atb-name">' + esc(el.name) + '</h2>',
+          el.suffix ? '    <p class="atb-suffix">' + esc(el.suffix) + '</p>' : '',
+          '    <div class="atb-rule"></div>',
+          '  </div>',
+          '</section>',
+        ].join('\n');
+
       default:
         return '';
     }

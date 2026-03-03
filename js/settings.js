@@ -252,6 +252,7 @@
     '<section class="sp-tab-content" data-panel="add">',
     '  <p class="sp-hint">Add optional blocks to the bottom of your page. Click a button to add one, then save.</p>',
     '  <div class="sp-add-grid">',
+    '    <button class="sp-add-btn" data-add="announcementTitle">+ Announcement Title</button>',
     '    <button class="sp-add-btn" data-add="scripture">+ Scripture / Quote Block</button>',
     '    <button class="sp-add-btn" data-add="customText">+ Custom Text Section</button>',
     '    <button class="sp-add-btn" data-add="prayerPartners">+ Prayer Partners List</button>',
@@ -271,6 +272,7 @@
 
   // ── Default values for each stock element type ─────────────────────────
   var ELEMENT_DEFAULTS = {
+    announcementTitle: { type: 'announcementTitle', prefix: 'Announcing the Ordination of', name: 'Full Name', suffix: 'to the Sacred Order of Deacons' },
     scripture:      { type: 'scripture',      reference: 'Book Chapter:Verse', text: 'Enter the scripture or quote text here.' },
     customText:     { type: 'customText',     heading: 'New Section',          body: 'Enter your text here.' },
     prayerPartners: { type: 'prayerPartners', heading: 'Prayer Partners',      names: ['Name One', 'Name Two'] },
@@ -285,6 +287,11 @@
 
   // Field definitions for each element type's edit form
   var EDIT_FIELDS = {
+    announcementTitle: [
+      { path: 'prefix', label: 'Text before the name',  tag: 'input', placeholder: 'Announcing the Ordination of' },
+      { path: 'name',   label: 'Name',                  tag: 'input', placeholder: 'Full Name' },
+      { path: 'suffix', label: 'Text after the name',   tag: 'input', placeholder: 'to the Sacred Order of Deacons' },
+    ],
     scripture: [
       { path: 'reference', label: 'Scripture Reference', tag: 'input', placeholder: 'e.g. John 13:35' },
       { path: 'text',      label: 'Quote Text',          tag: 'textarea', rows: 4 },
@@ -315,6 +322,7 @@
   };
 
   var TYPE_LABELS = {
+    announcementTitle: 'Announcement Title',
     scripture:      'Scripture / Quote',
     customText:     'Custom Text',
     prayerPartners: 'Prayer Partners',
