@@ -23,11 +23,8 @@ window.CONFIG = {
     "eyebrow": "Archdiocese of Atlanta",
     "leadText": "With gratitude for the Lord's call and the support of family and friends, I look toward ordination to the transitional diaconate. Please keep me in your prayers as the day approaches."
   },
-
-  // ── Appearance ───────────────────────────────────────────────────────────
-  // Theme options: "burgundy"  "navy"  "forest"  "slate"
-  appearance: {
-    theme: "slate",
+  "appearance": {
+    "theme": "slate"
   },
   "sections": {
     "countdown": true,
@@ -36,7 +33,7 @@ window.CONFIG = {
     "intentions": true,
     "catechesis": true,
     "livestream": true,
-    "rsvp": false,
+    "rsvp": true,
     "ordinationMass": true,
     "thanksgivingMass": true
   },
