@@ -65,12 +65,12 @@ a:active                  { color: var(--color-primary-900); }
 .countdown-banner {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.65rem clamp(1rem, 4vw, 1.6rem);
-  border-radius: 999px;
+  gap: 0.65rem;
+  padding: clamp(0.85rem, 2.5vw, 1.1rem) clamp(1.25rem, 4vw, 2rem);
+  border-radius: 16px;          /* consistent with card language; 999px pill looked cramped */
   background: var(--countdown-bg);
   border: 1px solid var(--countdown-border);
-  box-shadow: 0 12px 32px -24px rgba(7, 16, 34, 0.7);
+  box-shadow: 0 12px 32px -18px rgba(7, 16, 34, 0.55);
 }
 
 .countdown-main {
@@ -124,9 +124,10 @@ a:active                  { color: var(--color-primary-900); }
 }
 
 .countdown-value {
-  font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+  font-size: clamp(1.35rem, 2.8vw, 1.75rem);
   font-weight: 700;
   letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;   /* keeps numbers same width so they don't shift */
   /* inherits white from .countdown-item; span so unaffected by .page-shell p rule */
 }
 
@@ -178,10 +179,11 @@ a:active                  { color: var(--color-primary-900); }
 /* ── Cards ──────────────────────────────────────────────────────────────── */
 .card {
   background: var(--card-bg);
-  border-radius: 20px;
+  border-radius: 16px;
   padding: clamp(1.35rem, 3vw, 1.85rem);
   border: 1px solid var(--card-border);
-  box-shadow: 0 22px 52px -34px rgba(9, 21, 48, 0.5);
+  border-left: 3px solid var(--color-primary-500);  /* subtle theme accent stripe */
+  box-shadow: 0 16px 40px -24px rgba(9, 21, 48, 0.38);
   display: grid;
   gap: 0.85rem;
   color: var(--color-text-600);
@@ -512,7 +514,7 @@ a:active                  { color: var(--color-primary-900); }
 .sp-field textarea:focus {
   outline: none;
   border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(125, 26, 68, 0.12);
+  box-shadow: 0 0 0 3px rgba(61, 80, 106, 0.15);  /* theme-neutral — not hardcoded burgundy */
 }
 
 .sp-section-heading {
@@ -669,6 +671,27 @@ a:active                  { color: var(--color-primary-900); }
 
 .sp-extra-row span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+.sp-extra-btns {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.sp-edit-btn {
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  color: var(--color-primary-700);
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 150ms ease;
+  box-shadow: none;
+  transform: none;
+}
+.sp-edit-btn:hover { background: rgba(0, 0, 0, 0.06); box-shadow: none; transform: none; }
+
 .sp-remove-btn {
   background: none;
   border: 1px solid rgba(200, 40, 40, 0.35);
@@ -683,6 +706,41 @@ a:active                  { color: var(--color-primary-900); }
   transform: none;
 }
 .sp-remove-btn:hover { background: rgba(192, 57, 43, 0.08); box-shadow: none; transform: none; }
+
+/* ── Edit form (shown inside Add Elements tab when editing an extra) ─── */
+.sp-edit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.sp-edit-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-500);
+}
+
+.sp-done-btn {
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  color: var(--color-text-600);
+  border-radius: 6px;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: none;
+  transform: none;
+  transition: background 150ms ease;
+}
+.sp-done-btn:hover { background: rgba(0, 0, 0, 0.05); box-shadow: none; transform: none; }
 
 /* ── Save footer ────────────────────────────────────────────────────────── */
 .sp-footer {
@@ -801,10 +859,6 @@ a:active                  { color: var(--color-primary-900); }
 }
 
 @media (max-width: 720px) {
-  .countdown-banner {
-    border-radius: 18px;
-  }
-
   .countdown-main {
     flex-direction: column;
     align-items: flex-start;

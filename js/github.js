@@ -165,7 +165,8 @@
 
   // ── Core save: GET SHA → PUT new content ──────────────────────────────
   function performSave(token, repo) {
-    var saveBtn = document.getElementById('spSaveBtn');
+    var saveBtn     = document.getElementById('spSaveBtn');
+    var saveStartTime = new Date();   // captured before any async work
     if (saveBtn) saveBtn.disabled = true;
 
     setStatus('Connecting to GitHub…', false);
@@ -233,16 +234,119 @@
         return res.json();
       })
       .then(function () {
-        setStatus('Saved! Your site will update in about 60 seconds. Reloading…', false);
-        // Reload after 4 seconds; append timestamp to bypass any browser cache
-        setTimeout(function () {
-          window.location.href = window.location.pathname + '?v=' + Date.now();
-        }, 4000);
+        // Commit succeeded — now wait for GitHub Pages to actually deploy it.
+        // We poll the Deployments API until the github-pages environment shows
+        // a "success" state, then reload so the browser fetches the fresh config.
+        waitForDeployment(token, repo, saveStartTime, saveBtn);
       })
       .catch(function (err) {
         setStatus('Error: ' + err.message, true);
         if (saveBtn) saveBtn.disabled = false;
       });
+  }
+
+  // ── Poll GitHub Deployments API until github-pages env reports success ─
+  //
+  // GitHub Pages (both classic branch-based and Actions-based) creates a
+  // Deployment record under the "github-pages" environment whenever a new
+  // commit triggers a rebuild. We look for a deployment created at or after
+  // saveStartTime, then watch its status until it reaches "success".
+  //
+  // API endpoints used (all require the same Bearer token / repo scope):
+  //   GET /repos/{owner}/{repo}/deployments?environment=github-pages&per_page=5
+  //   GET /repos/{owner}/{repo}/deployments/{id}/statuses?per_page=1
+  //
+  function waitForDeployment(token, repo, saveStartTime, saveBtn) {
+    var apiBase = 'https://api.github.com/repos/' + repo;
+    var headers = {
+      'Authorization':        'Bearer ' + token,
+      'Accept':               'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+
+    var INITIAL_DELAY_MS = 8000;   // GitHub needs a moment to register the commit
+    var POLL_INTERVAL_MS = 6000;   // check every 6 s
+    var MAX_WAIT_MS      = 3 * 60 * 1000;  // give up after 3 minutes
+
+    var startedAt  = Date.now();
+    var deploymentId = null;
+
+    setStatus('✓ Saved! Waiting for GitHub to deploy…', false);
+
+    // Short initial pause before the first poll
+    var pollTimer = null;
+    var initialTimer = setTimeout(function () {
+      pollTimer = setInterval(doPoll, POLL_INTERVAL_MS);
+      doPoll();
+    }, INITIAL_DELAY_MS);
+
+    function doPoll() {
+      if (Date.now() - startedAt > MAX_WAIT_MS) {
+        finish(false, 'Saved, but deployment is taking longer than expected. Reload the page manually when ready.');
+        return;
+      }
+
+      // If we already found the deployment ID, jump straight to status check
+      if (deploymentId !== null) {
+        checkStatus(deploymentId);
+        return;
+      }
+
+      // Look for a deployment created at or after our save started
+      fetch(apiBase + '/deployments?environment=github-pages&per_page=5', { headers: headers })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (list) {
+          if (!list || !list.length) return;
+
+          // Find the most-recent deployment created >= saveStartTime
+          var match = list.find(function (d) {
+            return new Date(d.created_at) >= saveStartTime;
+          });
+
+          if (!match) return;  // deployment not yet registered, keep polling
+
+          deploymentId = match.id;
+          checkStatus(deploymentId);
+        })
+        .catch(function () { /* ignore transient errors — keep polling */ });
+    }
+
+    function checkStatus(id) {
+      fetch(apiBase + '/deployments/' + id + '/statuses?per_page=1', { headers: headers })
+        .then(function (res) { return res.ok ? res.json() : null; })
+        .then(function (statuses) {
+          if (!statuses || !statuses.length) return;
+          var state = statuses[0].state;
+
+          if (state === 'success') {
+            finish(true, null);
+          } else if (state === 'failure' || state === 'error') {
+            finish(false, 'Deployment failed. Check your repository\'s Actions tab for details.');
+          } else {
+            // pending / in_progress / queued — keep polling
+            var elapsed = Math.round((Date.now() - startedAt) / 1000);
+            setStatus('✓ Saved! Deploying… (' + elapsed + 's elapsed)', false);
+          }
+        })
+        .catch(function () { /* ignore transient errors */ });
+    }
+
+    function finish(success, errorMsg) {
+      clearTimeout(initialTimer);
+      clearInterval(pollTimer);
+      if (saveBtn) saveBtn.disabled = false;
+
+      if (success) {
+        setStatus('✓ Deployed! Reloading…', false);
+        // Small pause so the user sees the success message, then reload.
+        // Append ?v= to bust any in-browser cache of config.js.
+        setTimeout(function () {
+          window.location.href = window.location.pathname + '?v=' + Date.now();
+        }, 1500);
+      } else {
+        setStatus(errorMsg, !success);
+      }
+    }
   }
 
   // ── Public save entry point — called by settings.js save button ───────

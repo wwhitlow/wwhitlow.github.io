@@ -173,7 +173,7 @@
     '    <button class="sp-swatch" data-theme="slate">',
     '      <span class="swatch-preview">',
     '        <span class="swatch-dot" style="background:#3d506a"></span>',
-    '        <span class="swatch-dot" style="background:#c5a95f"></span>',
+    '        <span class="swatch-dot" style="background:#d4b870"></span>',
     '      </span>',
     '      Slate',
     '    </button>',
@@ -227,13 +227,107 @@
     youtubeEmbed:   { type: 'youtubeEmbed',   heading: 'Video',               videoId: '' },
   };
 
-  // ── Render the list of added extra elements ────────────────────────────
+  // Which extra element is currently being edited (null = showing the list)
+  var editingIndex = null;
+
+  // Field definitions for each element type's edit form
+  var EDIT_FIELDS = {
+    scripture: [
+      { path: 'reference', label: 'Scripture Reference', tag: 'input', placeholder: 'e.g. John 13:35' },
+      { path: 'text',      label: 'Quote Text',          tag: 'textarea', rows: 4 },
+    ],
+    customText: [
+      { path: 'heading', label: 'Section Heading', tag: 'input' },
+      { path: 'body',    label: 'Body Text',       tag: 'textarea', rows: 5 },
+    ],
+    prayerPartners: [
+      { path: 'heading', label: 'Section Heading',        tag: 'input' },
+      { path: 'names',   label: 'Names (one per line)',   tag: 'textarea', rows: 5, isArray: true },
+    ],
+    venue: [
+      { path: 'eyebrow',      label: 'Eyebrow',                tag: 'input' },
+      { path: 'heading',      label: 'Heading',                tag: 'input' },
+      { path: 'description',  label: 'Description',            tag: 'textarea', rows: 2 },
+      { path: 'parish',       label: 'Parish',                 tag: 'input' },
+      { path: 'date',         label: 'Date',                   tag: 'input', placeholder: 'May 23, 2026' },
+      { path: 'time',         label: 'Time',                   tag: 'input', placeholder: '10:00 AM Eastern' },
+      { path: 'address',      label: 'Address',                tag: 'input' },
+      { path: 'parking',      label: 'Parking / Notes',        tag: 'textarea', rows: 2 },
+      { path: 'mapsEmbedUrl', label: 'Google Maps Embed URL',  tag: 'textarea', rows: 3 },
+    ],
+    youtubeEmbed: [
+      { path: 'heading', label: 'Section Heading',                                tag: 'input' },
+      { path: 'videoId', label: 'YouTube Video ID (the part after ?v= in the URL)', tag: 'input', placeholder: 'dQw4w9WgXcQ' },
+    ],
+  };
+
+  var TYPE_LABELS = {
+    scripture:      'Scripture / Quote',
+    customText:     'Custom Text',
+    prayerPartners: 'Prayer Partners',
+    venue:          'Venue Card',
+    youtubeEmbed:   'YouTube Embed',
+  };
+
+  // ── Render the list of added extra elements (or the edit form) ─────────
   function renderExtrasList() {
     var list = document.getElementById('sp-extras-list');
     if (!list) return;
 
     var extras = window.CONFIG.extraElements || [];
 
+    // Guard: editingIndex may have become stale if elements were removed
+    if (editingIndex !== null && !extras[editingIndex]) editingIndex = null;
+
+    // Show edit form when a specific element is selected
+    if (editingIndex !== null) {
+      var el = extras[editingIndex];
+      var fields = EDIT_FIELDS[el.type] || [];
+      var title  = TYPE_LABELS[el.type] || el.type;
+
+      var fieldsHtml = fields.map(function (f) {
+        var ctrl = f.tag === 'textarea'
+          ? '<textarea rows="' + (f.rows || 3) + '" data-edit-path="' + f.path + '"' +
+            (f.placeholder ? ' placeholder="' + f.placeholder + '"' : '') + '></textarea>'
+          : '<input type="text" data-edit-path="' + f.path + '"' +
+            (f.placeholder ? ' placeholder="' + f.placeholder + '"' : '') + '>';
+        return '<label class="sp-field"><span>' + f.label + '</span>' + ctrl + '</label>';
+      }).join('\n');
+
+      list.innerHTML = [
+        '<div class="sp-edit-header">',
+        '  <span class="sp-edit-title">Editing: ' + title + '</span>',
+        '  <button class="sp-done-btn" aria-label="Back to elements list">\u2190 Back</button>',
+        '</div>',
+        fieldsHtml || '<p class="sp-hint">No editable fields for this type.</p>',
+      ].join('\n');
+
+      // Populate current values
+      list.querySelectorAll('[data-edit-path]').forEach(function (input) {
+        var val = el[input.dataset.editPath];
+        input.value = Array.isArray(val) ? val.join('\n') : (val == null ? '' : val);
+      });
+
+      // Bind live edits → CONFIG update → page re-render
+      list.querySelectorAll('[data-edit-path]').forEach(function (input) {
+        input.addEventListener('input', function () {
+          var field = fields.find(function (f) { return f.path === input.dataset.editPath; });
+          el[input.dataset.editPath] = (field && field.isArray)
+            ? input.value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean)
+            : input.value;
+          window.PAGE.render();
+        });
+      });
+
+      list.querySelector('.sp-done-btn').addEventListener('click', function () {
+        editingIndex = null;
+        renderExtrasList();
+      });
+
+      return;
+    }
+
+    // ── Normal list view ──────────────────────────────────────────────────
     if (extras.length === 0) {
       list.innerHTML = '<p class="sp-hint">No extra elements added yet.</p>';
       return;
@@ -243,18 +337,29 @@
       var label = el.heading || el.reference || el.type;
       return [
         '<div class="sp-extra-row">',
-        '  <span>' + el.type + (label ? ' — ' + label : '') + '</span>',
-        '  <button class="sp-remove-btn" data-index="' + i + '" aria-label="Remove element">Remove</button>',
+        '  <span>' + (TYPE_LABELS[el.type] || el.type) + (label && label !== el.type ? ' \u2014 ' + label : '') + '</span>',
+        '  <div class="sp-extra-btns">',
+        '    <button class="sp-edit-btn"   data-index="' + i + '">Edit</button>',
+        '    <button class="sp-remove-btn" data-index="' + i + '">Remove</button>',
+        '  </div>',
         '</div>',
       ].join('\n');
     }).join('\n');
 
     list.innerHTML = html;
 
+    list.querySelectorAll('.sp-edit-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        editingIndex = parseInt(btn.dataset.index, 10);
+        renderExtrasList();
+      });
+    });
+
     list.querySelectorAll('.sp-remove-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var idx = parseInt(btn.dataset.index, 10);
         window.CONFIG.extraElements.splice(idx, 1);
+        if (editingIndex !== null && editingIndex >= idx) editingIndex = null;
         renderExtrasList();
         window.PAGE.render();
       });
@@ -263,6 +368,7 @@
 
   // ── Populate all inputs from window.CONFIG ─────────────────────────────
   function populatePanel() {
+    editingIndex = null;   // always start Add Elements tab in list view
     var panel = document.getElementById('settingsPanel');
 
     // Text inputs and textareas
