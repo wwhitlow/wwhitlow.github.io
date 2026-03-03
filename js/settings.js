@@ -86,6 +86,20 @@
     '    <span>Opening Paragraph</span>',
     '    <textarea rows="5" data-path="identity.leadText"></textarea>',
     '  </label>',
+
+    '  <p class="sp-section-heading">Announcement Title</p>',
+    '  <label class="sp-field">',
+    '    <span>Text before the name</span>',
+    '    <input type="text" data-path="announcementTitle.prefix" placeholder="Announcing the Ordination of">',
+    '  </label>',
+    '  <label class="sp-field">',
+    '    <span>Name</span>',
+    '    <input type="text" data-path="announcementTitle.name" placeholder="Full Name">',
+    '  </label>',
+    '  <label class="sp-field">',
+    '    <span>Text after the name</span>',
+    '    <input type="text" data-path="announcementTitle.suffix" placeholder="to the Sacred Order of Deacons">',
+    '  </label>',
     '</section>',
 
     // ── TAB: Events ──────────────────────────────────────────────────────
@@ -237,6 +251,7 @@
     // ── TAB: Sections ────────────────────────────────────────────────────
     '<section class="sp-tab-content" data-panel="sections">',
     '  <p class="sp-hint">Toggle any section on or off. Changes preview instantly.</p>',
+    '  <label class="sp-toggle-row"><span>Announcement Title</span>    <input type="checkbox" data-path="sections.announcementTitle"></label>',
     '  <label class="sp-toggle-row"><span>Countdown Banner</span>      <input type="checkbox" data-path="sections.countdown"></label>',
     '  <label class="sp-toggle-row"><span>Hero / Intro</span>           <input type="checkbox" data-path="sections.hero"></label>',
     '  <label class="sp-toggle-row"><span>Event Details Card</span>    <input type="checkbox" data-path="sections.details"></label>',
@@ -252,7 +267,6 @@
     '<section class="sp-tab-content" data-panel="add">',
     '  <p class="sp-hint">Add optional blocks to the bottom of your page. Click a button to add one, then save.</p>',
     '  <div class="sp-add-grid">',
-    '    <button class="sp-add-btn" data-add="announcementTitle">+ Announcement Title</button>',
     '    <button class="sp-add-btn" data-add="scripture">+ Scripture / Quote Block</button>',
     '    <button class="sp-add-btn" data-add="customText">+ Custom Text Section</button>',
     '    <button class="sp-add-btn" data-add="prayerPartners">+ Prayer Partners List</button>',
@@ -272,7 +286,6 @@
 
   // ── Default values for each stock element type ─────────────────────────
   var ELEMENT_DEFAULTS = {
-    announcementTitle: { type: 'announcementTitle', prefix: 'Announcing the Ordination of', name: 'Full Name', suffix: 'to the Sacred Order of Deacons' },
     scripture:      { type: 'scripture',      reference: 'Book Chapter:Verse', text: 'Enter the scripture or quote text here.' },
     customText:     { type: 'customText',     heading: 'New Section',          body: 'Enter your text here.' },
     prayerPartners: { type: 'prayerPartners', heading: 'Prayer Partners',      names: ['Name One', 'Name Two'] },
@@ -287,11 +300,6 @@
 
   // Field definitions for each element type's edit form
   var EDIT_FIELDS = {
-    announcementTitle: [
-      { path: 'prefix', label: 'Text before the name',  tag: 'input', placeholder: 'Announcing the Ordination of' },
-      { path: 'name',   label: 'Name',                  tag: 'input', placeholder: 'Full Name' },
-      { path: 'suffix', label: 'Text after the name',   tag: 'input', placeholder: 'to the Sacred Order of Deacons' },
-    ],
     scripture: [
       { path: 'reference', label: 'Scripture Reference', tag: 'input', placeholder: 'e.g. John 13:35' },
       { path: 'text',      label: 'Quote Text',          tag: 'textarea', rows: 4 },
@@ -322,7 +330,6 @@
   };
 
   var TYPE_LABELS = {
-    announcementTitle: 'Announcement Title',
     scripture:      'Scripture / Quote',
     customText:     'Custom Text',
     prayerPartners: 'Prayer Partners',

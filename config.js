@@ -23,10 +23,16 @@ window.CONFIG = {
     "eyebrow": "Archdiocese of Atlanta",
     "leadText": "With gratitude for the Lord's call and the support of family and friends, I look toward ordination to the transitional diaconate. Please keep me in your prayers as the day approaches."
   },
+  "announcementTitle": {
+    "prefix": "Announcing the Ordination of",
+    "name": "NAME",
+    "suffix": "to the Sacred Order of Deacons"
+  },
   "appearance": {
     "theme": "slate"
   },
   "sections": {
+    "announcementTitle": true,
     "countdown": true,
     "hero": true,
     "details": true,

@@ -167,6 +167,20 @@
     ].join('\n');
   }
 
+  function renderAnnouncementTitle(cfg) {
+    return [
+      '<section class="announcement-title-block">',
+      '  <div class="atb-inner">',
+      '    <div class="atb-rule"></div>',
+      cfg.prefix ? '    <p class="atb-prefix">' + esc(cfg.prefix) + '</p>' : '',
+      '    <h2 class="atb-name">' + esc(cfg.name) + '</h2>',
+      cfg.suffix ? '    <p class="atb-suffix">' + esc(cfg.suffix) + '</p>' : '',
+      '    <div class="atb-rule"></div>',
+      '  </div>',
+      '</section>',
+    ].join('\n');
+  }
+
   // ── Extra / stock element renderers ─────────────────────────────────────
   function renderExtraElement(el) {
     switch (el.type) {
@@ -209,19 +223,6 @@
           '  <div class="embed-wrapper">',
           '    <iframe src="https://www.youtube.com/embed/' + esc(el.videoId) + '"',
           '      title="' + esc(el.heading) + '" loading="lazy" allowfullscreen></iframe>',
-          '  </div>',
-          '</section>',
-        ].join('\n');
-
-      case 'announcementTitle':
-        return [
-          '<section class="announcement-title-block">',
-          '  <div class="atb-inner">',
-          '    <div class="atb-rule"></div>',
-          el.prefix ? '    <p class="atb-prefix">' + esc(el.prefix) + '</p>' : '',
-          '    <h2 class="atb-name">' + esc(el.name) + '</h2>',
-          el.suffix ? '    <p class="atb-suffix">' + esc(el.suffix) + '</p>' : '',
-          '    <div class="atb-rule"></div>',
           '  </div>',
           '</section>',
         ].join('\n');
@@ -297,6 +298,10 @@
 
     // Update page <title>
     document.title = C.identity.eventTitle || 'Ordination Announcement';
+
+    // Announcement Title
+    mount('section-announcement-title',
+      vis.announcementTitle ? renderAnnouncementTitle(C.announcementTitle) : '');
 
     // Countdown
     mount('section-countdown',
