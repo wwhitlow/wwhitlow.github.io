@@ -95,5 +95,11 @@ window.CONFIG = {
     "parking": "Light refreshments are planned immediately after Mass.",
     "mapsEmbedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3344.705499647885!2d-85.03162428833699!3d33.03788847344538!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x888b569b7b4a1595%3A0xa0a88297a7c80116!2sSt.%20Peter's%20Catholic%20Church!5e0!3m2!1sen!2sus!4v1762803696059!5m2!1sen!2sus"
   },
-  "extraElements": []
+  "extraElements": [
+    {
+      "type": "scripture",
+      "reference": "John 1:1",
+      "text": "In the beginning was the Word"
+    }
+  ]
 };
