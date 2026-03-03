@@ -26,6 +26,7 @@
   var TEMPLATE_REPO  = 'wwhitlow/wwhitlow.github.io';
   var TEMPLATE_FILES = [
     'index.html',
+    'config.js',        // replaced wholesale — users re-import their exported settings
     'css/themes.css',
     'css/styles.css',
     'js/page.js',
@@ -33,10 +34,6 @@
     'js/github.js',
     'README.md',
   ];
-  // config.js is handled separately during updates: the template's default
-  // structure is fetched and then the user's existing values are deep-merged
-  // on top, so new config fields get sensible defaults while all user data
-  // is preserved. See the performUpdate function below.
 
   // ── Status helper — updates the footer message in the settings panel ───
   function setStatus(msg, isError) {
@@ -79,29 +76,6 @@
     var binary = '';
     bytes.forEach(function (b) { binary += String.fromCharCode(b); });
     return btoa(binary);
-  }
-
-  // ── Decode base64 to string, safely handling Unicode characters ──────
-  function fromBase64(b64str) {
-    var binary = atob(b64str);
-    var bytes  = new Uint8Array(binary.length);
-    for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
-    return new TextDecoder().decode(bytes);
-  }
-
-  // ── Deep-merge source into target; arrays are replaced wholesale ──────
-  // Used during template updates to overlay the user's existing config values
-  // onto the template's default structure, so new fields arrive with defaults.
-  function deepMerge(target, source) {
-    Object.keys(source).forEach(function (key) {
-      if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
-        if (!target[key] || typeof target[key] !== 'object') { target[key] = {}; }
-        deepMerge(target[key], source[key]);
-      } else {
-        target[key] = source[key];
-      }
-    });
-    return target;
   }
 
   // ── Auto-detect the repo from the GitHub Pages URL ────────────────────
@@ -431,9 +405,9 @@
     dialog.innerHTML = [
       '<div class="sp-token-dialog-inner">',
       '  <h3>Update Site from Template</h3>',
-      '  <p>This replaces <code>index.html</code>, all CSS, and all JavaScript files with the latest version from the template repository.</p>',
-      '  <p><strong>Your settings are preserved.</strong> The update merges any new config fields from the template with your existing data \u2014 no customizations will be lost.</p>',
-      '  <p class="sp-hint">&#9888;&#65039; As a precaution, export your settings before continuing so you have a backup.</p>',
+      '  <p>This replaces all site files \u2014 including <code>config.js</code> \u2014 with the latest version from the template. Your personal details will be reset to the template defaults.</p>',
+      '  <p><strong>Export your settings first</strong>, then import them again after the update to restore your customizations.</p>',
+      '  <p class="sp-hint">&#9888;&#65039; The export file contains all your personal data. Keep it somewhere safe before continuing.</p>',
       '  <button id="dlg-export-first" class="sp-update-export-btn">&#8595; Export My Settings First</button>',
       '  <div class="sp-token-btns">',
       '    <button id="dlg-update-cancel">Cancel</button>',
@@ -527,34 +501,7 @@
             .then(function (blob) { blobs.push({ path: path, sha: blob.sha }); });
         });
 
-        // After all TEMPLATE_FILES are blobs, fetch config.js from the template,
-        // parse its CONFIG structure, and deep-merge user's current values on top.
-        // This ensures new config fields introduced by the template arrive with
-        // sensible defaults while all existing user data is preserved intact.
-        return chain.then(function () {
-          setStatus('Merging config\u2026', false);
-          return fetchFromTemplate('config.js')
-            .then(function (templateConfigFile) {
-              var raw = fromBase64((templateConfigFile.content || '').replace(/\n/g, ''));
-              // Extract the JSON object from the `window.CONFIG = {...};` assignment
-              var marker  = 'window.CONFIG = ';
-              var start   = raw.indexOf(marker);
-              var jsonPart = raw.slice(start + marker.length).replace(/;\s*$/, '').trim();
-              var templateDefaults = JSON.parse(jsonPart);
-              // Template defaults are the base; user's live CONFIG is overlaid on top
-              var merged = deepMerge(JSON.parse(JSON.stringify(templateDefaults)), window.CONFIG);
-              return fetch(apiBase + '/git/blobs', {
-                method:  'POST',
-                headers: headers,
-                body:    JSON.stringify({ content: toBase64(serializeConfig(merged)), encoding: 'base64' }),
-              })
-                .then(function (r) { return r.json(); })
-                .then(function (blob) {
-                  blobs.push({ path: 'config.js', sha: blob.sha });
-                  return blobs;
-                });
-            });
-        });
+        return chain.then(function () { return blobs; });
       })
       .then(function (blobs) {
         setStatus('Creating update commit\u2026', false);
