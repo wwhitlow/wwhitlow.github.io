@@ -171,6 +171,7 @@
     return [
       '<section class="announcement-title-block">',
       '  <div class="atb-inner">',
+      cfg.photoUrl ? '    <img class="atb-photo" src="' + esc(cfg.photoUrl) + '" alt="' + esc(cfg.name) + '" loading="lazy">' : '',
       '    <div class="atb-rule"></div>',
       cfg.prefix ? '    <p class="atb-prefix">' + esc(cfg.prefix) + '</p>' : '',
       '    <h2 class="atb-name">' + esc(cfg.name) + '</h2>',
@@ -215,6 +216,16 @@
 
       case 'venue':
         return renderVenueCard(el);
+
+      case 'imageBlock':
+        return [
+          '<section class="card image-block">',
+          '  <figure>',
+          '    <img src="' + esc(el.url) + '" alt="' + esc(el.alt || '') + '" loading="lazy">',
+          el.caption ? '    <figcaption>' + esc(el.caption) + '</figcaption>' : '',
+          '  </figure>',
+          '</section>',
+        ].join('\n');
 
       case 'youtubeEmbed':
         return [

@@ -100,6 +100,10 @@
     '    <span>Text after the name</span>',
     '    <input type="text" data-path="announcementTitle.suffix" placeholder="to the Sacred Order of Deacons">',
     '  </label>',
+    '  <label class="sp-field">',
+    '    <span>Photo URL (optional &mdash; paste a public image link for a circular headshot)</span>',
+    '    <input type="url" data-path="announcementTitle.photoUrl" placeholder="https://example.com/photo.jpg">',
+    '  </label>',
     '</section>',
 
     // ── TAB: Events ──────────────────────────────────────────────────────
@@ -267,6 +271,7 @@
     '<section class="sp-tab-content" data-panel="add">',
     '  <p class="sp-hint">Add optional blocks to the bottom of your page. Click a button to add one, then save.</p>',
     '  <div class="sp-add-grid">',
+    '    <button class="sp-add-btn" data-add="imageBlock">+ Image / Photo Block</button>',
     '    <button class="sp-add-btn" data-add="scripture">+ Scripture / Quote Block</button>',
     '    <button class="sp-add-btn" data-add="customText">+ Custom Text Section</button>',
     '    <button class="sp-add-btn" data-add="prayerPartners">+ Prayer Partners List</button>',
@@ -281,11 +286,16 @@
     '<div class="sp-footer">',
     '  <div class="sp-save-status" id="spSaveStatus" role="status" aria-live="polite"></div>',
     '  <button class="sp-save-btn" id="spSaveBtn">Save to GitHub</button>',
+    '  <div class="sp-footer-secondary">',
+    '    <button class="sp-secondary-btn" id="spExportBtn" title="Download your settings as a backup file">&#8595; Export Settings</button>',
+    '    <button class="sp-secondary-btn" id="spImportBtn" title="Restore settings from a backup file">&#8593; Import Settings</button>',
+    '  </div>',
     '</div>',
   ].join('\n');
 
   // ── Default values for each stock element type ─────────────────────────
   var ELEMENT_DEFAULTS = {
+    imageBlock:     { type: 'imageBlock',     url: '', alt: '', caption: '' },
     scripture:      { type: 'scripture',      reference: 'Book Chapter:Verse', text: 'Enter the scripture or quote text here.' },
     customText:     { type: 'customText',     heading: 'New Section',          body: 'Enter your text here.' },
     prayerPartners: { type: 'prayerPartners', heading: 'Prayer Partners',      names: ['Name One', 'Name Two'] },
@@ -300,6 +310,11 @@
 
   // Field definitions for each element type's edit form
   var EDIT_FIELDS = {
+    imageBlock: [
+      { path: 'url',     label: 'Image URL (paste a public link)',         tag: 'input',    placeholder: 'https://example.com/photo.jpg' },
+      { path: 'alt',     label: 'Alt text (describes the image)',          tag: 'input',    placeholder: 'e.g. Gabriel Whitlow at ordination' },
+      { path: 'caption', label: 'Caption (optional, shown below image)',   tag: 'textarea', rows: 2 },
+    ],
     scripture: [
       { path: 'reference', label: 'Scripture Reference', tag: 'input', placeholder: 'e.g. John 13:35' },
       { path: 'text',      label: 'Quote Text',          tag: 'textarea', rows: 4 },
@@ -330,12 +345,63 @@
   };
 
   var TYPE_LABELS = {
+    imageBlock:     'Image / Photo',
     scripture:      'Scripture / Quote',
     customText:     'Custom Text',
     prayerPartners: 'Prayer Partners',
     venue:          'Venue Card',
     youtubeEmbed:   'YouTube Embed',
   };
+
+  // ── Export / Import helpers ──────────────────────────────────────────────
+  // Deep merge: overlays source onto target so new template fields are preserved
+  // when importing an older config.json that predates them.
+  function deepMerge(target, source) {
+    Object.keys(source).forEach(function (key) {
+      if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        if (!target[key] || typeof target[key] !== 'object') target[key] = {};
+        deepMerge(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    });
+    return target;
+  }
+
+  function exportConfig() {
+    var json = JSON.stringify(window.CONFIG, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'ordination-config.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importConfig() {
+    var input    = document.createElement('input');
+    input.type   = 'file';
+    input.accept = '.json,application/json';
+    input.onchange = function (e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function (evt) {
+        try {
+          var parsed = JSON.parse(evt.target.result);
+          deepMerge(window.CONFIG, parsed);
+          window.PAGE.render();
+          populatePanel();
+          setStatus('Settings imported \u2014 click Save to GitHub to apply.', false);
+        } catch (err) {
+          setStatus('Import failed: file is not valid JSON.', true);
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
 
   // ── Auth helpers ────────────────────────────────────────────────────────
   function isLocked() {
@@ -652,6 +718,12 @@
 
     bindTabs(panel);
     bindInputs(panel);
+
+    // Export / Import buttons
+    var exportBtn = document.getElementById('spExportBtn');
+    var importBtn = document.getElementById('spImportBtn');
+    if (exportBtn) exportBtn.addEventListener('click', exportConfig);
+    if (importBtn) importBtn.addEventListener('click', importConfig);
   }
 
   // ── Status message helper (called by github.js) ────────────────────────

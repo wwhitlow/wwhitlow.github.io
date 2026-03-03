@@ -354,6 +354,16 @@ a:active                  { color: var(--color-primary-900); }
   border-radius: 999px;
 }
 
+.atb-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-accent-400);
+  margin-bottom: 0.25rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
 .atb-prefix,
 .atb-suffix {
   margin: 0;
@@ -370,6 +380,28 @@ a:active                  { color: var(--color-primary-900); }
   letter-spacing: 0.04em;
   line-height: 1.15;
   color: var(--color-primary-700);
+}
+
+/* ── Image / photo block ────────────────────────────────────────────────── */
+.image-block figure {
+  margin: 0;
+}
+
+.image-block img {
+  width: 100%;
+  display: block;
+  border-radius: 12px;
+  max-height: 520px;
+  object-fit: cover;
+}
+
+.image-block figcaption {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--color-text-500);
+  text-align: center;
+  font-style: italic;
+  line-height: 1.4;
 }
 
 /* ── YouTube block ──────────────────────────────────────────────────────── */
@@ -864,6 +896,28 @@ a:active                  { color: var(--color-primary-900); }
 }
 .sp-save-btn:hover { background: var(--color-primary-900); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); transform: none; }
 .sp-save-btn:disabled { opacity: 0.6; cursor: default; }
+
+.sp-footer-secondary {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sp-secondary-btn {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  color: var(--color-text-500);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+  letter-spacing: 0.01em;
+  box-shadow: none;
+  transform: none;
+}
+.sp-secondary-btn:hover { background: rgba(0, 0, 0, 0.05); color: var(--color-text-900); box-shadow: none; transform: none; }
 
 .sp-save-status {
   font-size: 0.85rem;
