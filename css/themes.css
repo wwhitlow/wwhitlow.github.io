@@ -6,6 +6,14 @@
  */
 
 /* ── Shared base variables (not theme-specific) ─────────────────────────── */
+/*
+ * These :root values serve two purposes:
+ *   1. They define truly theme-independent values (surface white, text greys).
+ *   2. They provide safe fallbacks so that no CSS var() ever resolves to
+ *      an invalid/inherited value if a theme class is momentarily absent.
+ *      Without fallbacks, var(--color-accent-400) inside a <p> would inherit
+ *      the dark body text colour and appear as dark-on-dark on the banner.
+ */
 :root {
   --color-surface:       #ffffff;
   --color-text-900:      #0f1420;
@@ -13,9 +21,26 @@
   --color-text-500:      #4a5878;
   --shadow-elevated:     0 22px 45px -24px rgba(9, 21, 48, 0.35);
   --panel-border-color:  rgba(20, 39, 82, 0.08);
+
+  /* Fallbacks for theme-specific vars — slate values used as the global default */
+  --color-primary-900:   #1a2230;
+  --color-primary-700:   #2c3a4f;
+  --color-primary-500:   #3d506a;
+  --color-accent-400:    #d4b870;   /* warm gold — legible on all dark banners */
+  --countdown-bg:        rgba(26, 34, 48, 0.92);
+  --countdown-border:    rgba(255, 255, 255, 0.12);
+  --hero-gradient:       linear-gradient(140deg, rgba(26,34,48,0.94), rgba(44,58,79,0.78));
+  --card-bg:             linear-gradient(135deg, rgba(255,255,255,0.98), rgba(242,244,248,0.94));
+  --card-border:         rgba(26, 34, 48, 0.08);
+  --card-h2-color:       #1a2230;
+  --body-background:
+    radial-gradient(140% 120% at 50% 0%, rgba(61, 80, 106, 0.10) 0%, rgba(61, 80, 106, 0) 58%),
+    linear-gradient(180deg, #f6f7fa 0%, #eaecf2 55%, #dadde8 100%);
+  --panel-background:    rgba(255, 255, 255, 0.92);
+  --swatch-active-border: #3d506a;
 }
 
-/* ── Burgundy (recommended default) ─────────────────────────────────────── */
+/* ── Burgundy ────────────────────────────────────────────────────────────── */
 body.theme-burgundy {
   --color-primary-900:   #3b0a1f;
   --color-primary-700:   #5c1230;
@@ -81,12 +106,12 @@ body.theme-forest {
   --swatch-active-border: #255f33;
 }
 
-/* ── Slate ───────────────────────────────────────────────────────────────── */
+/* ── Slate (default) ─────────────────────────────────────────────────────── */
 body.theme-slate {
   --color-primary-900:   #1a2230;
   --color-primary-700:   #2c3a4f;
   --color-primary-500:   #3d506a;
-  --color-accent-400:    #c5a95f;
+  --color-accent-400:    #d4b870;   /* brightened from #c5a95f — much cleaner on dark bg */
 
   --countdown-bg:        rgba(26, 34, 48, 0.92);
   --countdown-border:    rgba(255, 255, 255, 0.12);

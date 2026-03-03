@@ -79,12 +79,21 @@ a:active                  { color: var(--color-primary-900); }
   gap: clamp(0.5rem, 2vw, 1rem);
 }
 
-.countdown-label {
+/*
+ * SPECIFICITY NOTE: .countdown-label and .countdown-reflection are <p> elements
+ * inside .page-shell. The rule ".page-shell p" has specificity 0,1,1 which beats
+ * a bare ".countdown-label" class selector (0,1,0), causing dark text to inherit
+ * on the dark banner. Prefixing with ".countdown-banner" raises specificity to
+ * 0,2,0 and wins cleanly. Same pattern applies to .countdown-reflection.
+ */
+
+/* White label — reliable on every theme's dark banner background */
+.countdown-banner .countdown-label {
   margin: 0;
   font-size: 1.2rem;
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--color-accent-400);
+  color: rgba(255, 255, 255, 0.95);
   white-space: nowrap;
 }
 
@@ -96,10 +105,11 @@ a:active                  { color: var(--color-primary-900); }
   gap: clamp(0.5rem, 3vw, 1.5rem);
 }
 
-.countdown-reflection {
+/* Bumped from 0.75 → 0.85 for cleaner readability at small sizes */
+.countdown-banner .countdown-reflection {
   margin: 0.25rem 0 0;
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgba(255, 255, 255, 0.85);
   line-height: 1.4;
   text-align: center;
 }
@@ -110,20 +120,21 @@ a:active                  { color: var(--color-primary-900); }
   flex-direction: column;
   align-items: center;
   min-width: 60px;
-  color: var(--color-surface);
+  color: var(--color-surface, #ffffff);  /* explicit fallback in case var() unresolved */
 }
 
 .countdown-value {
   font-size: clamp(1.2rem, 2.5vw, 1.6rem);
   font-weight: 700;
   letter-spacing: 0.04em;
+  /* inherits white from .countdown-item; span so unaffected by .page-shell p rule */
 }
 
 .countdown-unit {
   font-size: 0.75rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: 0.8;
+  opacity: 0.82;  /* bumped slightly from 0.8 */
 }
 
 /* ── Hero ───────────────────────────────────────────────────────────────── */
@@ -145,7 +156,8 @@ a:active                  { color: var(--color-primary-900); }
   text-transform: uppercase;
   color: var(--color-accent-400);
   font-weight: 700;
-  opacity: 0.9;
+  /* opacity removed — at 0.78rem with wide letter-spacing,
+     full-opacity accent gold is needed for comfortable reading */
 }
 
 .hero h1 {
