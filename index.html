@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ordination announcement page">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets: themes first, then structure -->
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/styles.css">
+
+  <title>Ordination Announcement</title>
+</head>
+<body class="theme-burgundy">
+
+  <!--
+    ┌──────────────────────────────────────────────────────┐
+    │  SETTINGS PANEL (always in DOM; hidden off-screen)   │
+    └──────────────────────────────────────────────────────┘
+  -->
+
+  <!-- Gear button — visible in bottom-right corner -->
+  <button
+    class="settings-trigger"
+    id="settingsTrigger"
+    aria-label="Open settings panel"
+    title="Customize this page"
+  >⚙</button>
+
+  <!-- Dark overlay behind the open panel -->
+  <div class="settings-overlay" id="settingsOverlay" aria-hidden="true"></div>
+
+  <!-- The slide-in panel; populated by settings.js -->
+  <aside
+    class="settings-panel"
+    id="settingsPanel"
+    aria-label="Page settings"
+    aria-hidden="true"
+    role="complementary"
+  ></aside>
+
+  <!--
+    ┌──────────────────────────────────────────────────────┐
+    │  PAGE CONTENT SHELL                                   │
+    │  Each <div> is a mount point. page.js fills them.    │
+    └──────────────────────────────────────────────────────┘
+  -->
+  <main class="page-shell" id="pageShell">
+    <div id="section-countdown"></div>
+    <div id="section-hero"></div>
+    <div id="section-details-row"></div>
+    <div id="section-catechesis"></div>
+    <div id="section-livestream"></div>
+    <div id="section-rsvp"></div>
+    <div id="section-ordination-mass"></div>
+    <div id="section-thanksgiving-mass"></div>
+    <div id="section-extras"></div>
+  </main>
+
+  <!--
+    Script load order is important:
+      1. config.js   — defines window.CONFIG (the data)
+      2. page.js     — reads CONFIG, renders DOM, exposes window.PAGE
+      3. settings.js — builds the panel, calls window.PAGE.render()
+      4. github.js   — GitHub API save, exposes window.GITHUB
+  -->
+  <script src="config.js"></script>
+  <script src="js/page.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/github.js"></script>
+
+</body>
+</html>

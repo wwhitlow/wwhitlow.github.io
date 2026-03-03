@@ -1,0 +1,104 @@
+/*
+ * themes.css
+ * Four colour themes, each defined as a body.theme-* class.
+ * All structural rules in styles.css use var() — never hardcoded colours.
+ * Switch themes by toggling the class on <body>.
+ */
+
+/* ── Shared base variables (not theme-specific) ─────────────────────────── */
+:root {
+  --color-surface:       #ffffff;
+  --color-text-900:      #0f1420;
+  --color-text-600:      #334060;
+  --color-text-500:      #4a5878;
+  --shadow-elevated:     0 22px 45px -24px rgba(9, 21, 48, 0.35);
+  --panel-border-color:  rgba(20, 39, 82, 0.08);
+}
+
+/* ── Burgundy (recommended default) ─────────────────────────────────────── */
+body.theme-burgundy {
+  --color-primary-900:   #3b0a1f;
+  --color-primary-700:   #5c1230;
+  --color-primary-500:   #7d1a44;
+  --color-accent-400:    #d4a843;
+
+  --countdown-bg:        rgba(59, 10, 31, 0.92);
+  --countdown-border:    rgba(255, 255, 255, 0.12);
+  --hero-gradient:       linear-gradient(140deg, rgba(59,10,31,0.94), rgba(92,18,48,0.78));
+  --card-bg:             linear-gradient(135deg, rgba(255,255,255,0.98), rgba(253,240,245,0.94));
+  --card-border:         rgba(92, 18, 48, 0.10);
+  --card-h2-color:       #3b0a1f;
+
+  --body-background:
+    radial-gradient(140% 120% at 50% 0%, rgba(125, 26, 68, 0.10) 0%, rgba(125, 26, 68, 0) 58%),
+    linear-gradient(180deg, #fdf8fa 0%, #f5eaef 55%, #eddde6 100%);
+
+  --panel-background:    rgba(255, 255, 255, 0.92);
+  --swatch-active-border: #7d1a44;
+}
+
+/* ── Navy Blue (original) ────────────────────────────────────────────────── */
+body.theme-navy {
+  --color-primary-900:   #142752;
+  --color-primary-700:   #1f3b76;
+  --color-primary-500:   #2d4f9c;
+  --color-accent-400:    #f4c542;
+
+  --countdown-bg:        rgba(20, 39, 82, 0.90);
+  --countdown-border:    rgba(255, 255, 255, 0.12);
+  --hero-gradient:       linear-gradient(140deg, rgba(20,39,82,0.94), rgba(31,59,118,0.78));
+  --card-bg:             linear-gradient(135deg, rgba(255,255,255,0.98), rgba(240,245,255,0.94));
+  --card-border:         rgba(20, 39, 82, 0.08);
+  --card-h2-color:       #142752;
+
+  --body-background:
+    radial-gradient(140% 120% at 50% 0%, rgba(45, 79, 156, 0.12) 0%, rgba(45, 79, 156, 0) 58%),
+    linear-gradient(180deg, #f8faff 0%, #eef2ff 55%, #e6ecf8 100%);
+
+  --panel-background:    rgba(255, 255, 255, 0.92);
+  --swatch-active-border: #2d4f9c;
+}
+
+/* ── Forest Green ────────────────────────────────────────────────────────── */
+body.theme-forest {
+  --color-primary-900:   #0d2b14;
+  --color-primary-700:   #1a4726;
+  --color-primary-500:   #255f33;
+  --color-accent-400:    #d4a843;
+
+  --countdown-bg:        rgba(13, 43, 20, 0.92);
+  --countdown-border:    rgba(255, 255, 255, 0.12);
+  --hero-gradient:       linear-gradient(140deg, rgba(13,43,20,0.94), rgba(26,71,38,0.78));
+  --card-bg:             linear-gradient(135deg, rgba(255,255,255,0.98), rgba(240,252,243,0.94));
+  --card-border:         rgba(13, 43, 20, 0.08);
+  --card-h2-color:       #0d2b14;
+
+  --body-background:
+    radial-gradient(140% 120% at 50% 0%, rgba(37, 95, 51, 0.10) 0%, rgba(37, 95, 51, 0) 58%),
+    linear-gradient(180deg, #f5fbf6 0%, #e8f5ea 55%, #d8eddc 100%);
+
+  --panel-background:    rgba(255, 255, 255, 0.92);
+  --swatch-active-border: #255f33;
+}
+
+/* ── Slate ───────────────────────────────────────────────────────────────── */
+body.theme-slate {
+  --color-primary-900:   #1a2230;
+  --color-primary-700:   #2c3a4f;
+  --color-primary-500:   #3d506a;
+  --color-accent-400:    #c5a95f;
+
+  --countdown-bg:        rgba(26, 34, 48, 0.92);
+  --countdown-border:    rgba(255, 255, 255, 0.12);
+  --hero-gradient:       linear-gradient(140deg, rgba(26,34,48,0.94), rgba(44,58,79,0.78));
+  --card-bg:             linear-gradient(135deg, rgba(255,255,255,0.98), rgba(242,244,248,0.94));
+  --card-border:         rgba(26, 34, 48, 0.08);
+  --card-h2-color:       #1a2230;
+
+  --body-background:
+    radial-gradient(140% 120% at 50% 0%, rgba(61, 80, 106, 0.10) 0%, rgba(61, 80, 106, 0) 58%),
+    linear-gradient(180deg, #f6f7fa 0%, #eaecf2 55%, #dadde8 100%);
+
+  --panel-background:    rgba(255, 255, 255, 0.92);
+  --swatch-active-border: #3d506a;
+}
