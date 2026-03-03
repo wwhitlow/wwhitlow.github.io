@@ -44,6 +44,18 @@ window.CONFIG = {
     "ordinationMass": true,
     "thanksgivingMass": true
   },
+  "sectionOrder": {
+    "announcementTitle": 1,
+    "countdown":         2,
+    "hero":              3,
+    "detailsRow":        4,
+    "catechesis":        5,
+    "livestream":        6,
+    "rsvp":              7,
+    "ordinationMass":    8,
+    "thanksgivingMass":  9,
+    "extras":           10
+  },
   "countdown": {
     "targetDate": "2026-05-23T10:00:00-04:00",
     "label": "Countdown to Ordination",
@@ -105,6 +117,7 @@ window.CONFIG = {
   "extraElements": [
     {
       "type": "scripture",
+      "order": 0,
       "reference": "John 1:1",
       "text": "In the beginning was the Word"
     }

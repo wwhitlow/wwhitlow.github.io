@@ -258,6 +258,14 @@
     }
   }
 
+  // ── Apply a CSS flex order value to a mount-point div ───────────────────
+  // Works because .page-shell is display:flex; flex-direction:column and all
+  // section divs are direct children, so CSS order repositions them visually.
+  function applyOrder(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.style.order = val;
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // COUNTDOWN TIMER
   // ═══════════════════════════════════════════════════════════════════════════
@@ -348,9 +356,26 @@
     mount('section-thanksgiving-mass',
       vis.thanksgivingMass ? renderVenueCard(C.thanksgivingMass) : '');
 
-    // Extra / stock elements
-    var extras = (C.extraElements || []).map(renderExtraElement).join('\n');
+    // Extra / stock elements — sorted by each element's `order` value (ascending)
+    var extras = (C.extraElements || [])
+      .slice()
+      .sort(function (a, b) { return (a.order || 0) - (b.order || 0); })
+      .map(renderExtraElement)
+      .join('\n');
     mount('section-extras', extras);
+
+    // Apply section display order (CSS flex order on each mount-point div)
+    var so = C.sectionOrder || {};
+    applyOrder('section-announcement-title', so.announcementTitle || 1);
+    applyOrder('section-countdown',          so.countdown         || 2);
+    applyOrder('section-hero',               so.hero              || 3);
+    applyOrder('section-details-row',        so.detailsRow        || 4);
+    applyOrder('section-catechesis',         so.catechesis        || 5);
+    applyOrder('section-livestream',         so.livestream        || 6);
+    applyOrder('section-rsvp',              so.rsvp              || 7);
+    applyOrder('section-ordination-mass',    so.ordinationMass    || 8);
+    applyOrder('section-thanksgiving-mass',  so.thanksgivingMass  || 9);
+    applyOrder('section-extras',            so.extras            || 10);
 
     // Start / restart the countdown timer after DOM is updated
     if (vis.countdown && C.countdown && C.countdown.targetDate) {

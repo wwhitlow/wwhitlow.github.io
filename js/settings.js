@@ -254,17 +254,60 @@
 
     // ── TAB: Sections ────────────────────────────────────────────────────
     '<section class="sp-tab-content" data-panel="sections">',
-    '  <p class="sp-hint">Toggle any section on or off. Changes preview instantly.</p>',
-    '  <label class="sp-toggle-row"><span>Announcement Title</span>    <input type="checkbox" data-path="sections.announcementTitle"></label>',
-    '  <label class="sp-toggle-row"><span>Countdown Banner</span>      <input type="checkbox" data-path="sections.countdown"></label>',
-    '  <label class="sp-toggle-row"><span>Hero / Intro</span>           <input type="checkbox" data-path="sections.hero"></label>',
-    '  <label class="sp-toggle-row"><span>Event Details Card</span>    <input type="checkbox" data-path="sections.details"></label>',
-    '  <label class="sp-toggle-row"><span>Prayer Intentions</span>     <input type="checkbox" data-path="sections.intentions"></label>',
-    '  <label class="sp-toggle-row"><span>Catechesis Section</span>    <input type="checkbox" data-path="sections.catechesis"></label>',
-    '  <label class="sp-toggle-row"><span>Livestream</span>            <input type="checkbox" data-path="sections.livestream"></label>',
-    '  <label class="sp-toggle-row"><span>RSVP / Stay in Touch</span>  <input type="checkbox" data-path="sections.rsvp"></label>',
-    '  <label class="sp-toggle-row"><span>Mass of Ordination</span>    <input type="checkbox" data-path="sections.ordinationMass"></label>',
-    '  <label class="sp-toggle-row"><span>Mass of Thanksgiving</span>  <input type="checkbox" data-path="sections.thanksgivingMass"></label>',
+    '  <p class="sp-hint">Toggle sections on or off and set their display order \u2014 lower numbers appear higher on the page.</p>',
+
+    '  <div class="sp-section-order-row">',
+    '    <label class="sp-toggle-row"><span>Announcement Title</span><input type="checkbox" data-path="sections.announcementTitle"></label>',
+    '    <input type="number" class="sp-order-input" data-order-section="announcementTitle" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <label class="sp-toggle-row"><span>Countdown Banner</span><input type="checkbox" data-path="sections.countdown"></label>',
+    '    <input type="number" class="sp-order-input" data-order-section="countdown" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <label class="sp-toggle-row"><span>Hero / Intro</span><input type="checkbox" data-path="sections.hero"></label>',
+    '    <input type="number" class="sp-order-input" data-order-section="hero" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <div class="sp-section-toggle-group">',
+    '      <label class="sp-toggle-row"><span>Event Details Card</span><input type="checkbox" data-path="sections.details"></label>',
+    '      <label class="sp-toggle-row"><span>Prayer Intentions</span><input type="checkbox" data-path="sections.intentions"></label>',
+    '    </div>',
+    '    <input type="number" class="sp-order-input" data-order-section="detailsRow" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <label class="sp-toggle-row"><span>Catechesis Section</span><input type="checkbox" data-path="sections.catechesis"></label>',
+    '    <input type="number" class="sp-order-input" data-order-section="catechesis" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <label class="sp-toggle-row"><span>Livestream</span><input type="checkbox" data-path="sections.livestream"></label>',
+    '    <input type="number" class="sp-order-input" data-order-section="livestream" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <label class="sp-toggle-row"><span>RSVP / Stay in Touch</span><input type="checkbox" data-path="sections.rsvp"></label>',
+    '    <input type="number" class="sp-order-input" data-order-section="rsvp" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <label class="sp-toggle-row"><span>Mass of Ordination</span><input type="checkbox" data-path="sections.ordinationMass"></label>',
+    '    <input type="number" class="sp-order-input" data-order-section="ordinationMass" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <label class="sp-toggle-row"><span>Mass of Thanksgiving</span><input type="checkbox" data-path="sections.thanksgivingMass"></label>',
+    '    <input type="number" class="sp-order-input" data-order-section="thanksgivingMass" min="1" step="1">',
+    '  </div>',
+
+    '  <div class="sp-section-order-row">',
+    '    <span class="sp-section-order-label">Extra Elements Block</span>',
+    '    <input type="number" class="sp-order-input" data-order-section="extras" min="1" step="1">',
+    '  </div>',
     '</section>',
 
     // ── TAB: Add Elements ────────────────────────────────────────────────
@@ -296,14 +339,14 @@
 
   // ── Default values for each stock element type ─────────────────────────
   var ELEMENT_DEFAULTS = {
-    imageBlock:     { type: 'imageBlock',     url: '', alt: '', caption: '' },
-    scripture:      { type: 'scripture',      reference: 'Book Chapter:Verse', text: 'Enter the scripture or quote text here.' },
-    customText:     { type: 'customText',     heading: 'New Section',          body: 'Enter your text here.' },
-    prayerPartners: { type: 'prayerPartners', heading: 'Prayer Partners',      names: ['Name One', 'Name Two'] },
-    venue:          { type: 'venue',          eyebrow: 'Additional Event',     heading: 'Venue Name',
+    imageBlock:     { type: 'imageBlock',     order: 0, url: '', alt: '', caption: '' },
+    scripture:      { type: 'scripture',      order: 0, reference: 'Book Chapter:Verse', text: 'Enter the scripture or quote text here.' },
+    customText:     { type: 'customText',     order: 0, heading: 'New Section',          body: 'Enter your text here.' },
+    prayerPartners: { type: 'prayerPartners', order: 0, heading: 'Prayer Partners',      names: ['Name One', 'Name Two'] },
+    venue:          { type: 'venue',          order: 0, eyebrow: 'Additional Event',     heading: 'Venue Name',
                       description: '',         parish: '', date: '', time: '',
                       address: '',             parking: '', mapsEmbedUrl: '' },
-    youtubeEmbed:   { type: 'youtubeEmbed',   heading: 'Video',               videoId: '' },
+    youtubeEmbed:   { type: 'youtubeEmbed',   order: 0, heading: 'Video',               videoId: '' },
   };
 
   // Which extra element is currently being edited (null = showing the list)
@@ -437,6 +480,11 @@
       if (el) el.disabled = locked;
     });
 
+    // Disable/enable all order inputs (both section order and extras list)
+    panel.querySelectorAll('.sp-order-input').forEach(function (el) {
+      el.disabled = locked;
+    });
+
     // Wire the Connect button (use .onclick to avoid stacking listeners)
     var connectBtn = document.getElementById('spConnectBtn');
     if (connectBtn) {
@@ -516,10 +564,16 @@
     var html = extras.map(function (el, i) {
       var label   = el.heading || el.reference || el.type;
       var disAttr = locked ? ' disabled' : '';
+      var orderVal = el.order == null ? 0 : el.order;
       return [
         '<div class="sp-extra-row">',
         '  <span>' + (TYPE_LABELS[el.type] || el.type) + (label && label !== el.type ? ' \u2014 ' + label : '') + '</span>',
         '  <div class="sp-extra-btns">',
+        '    <label class="sp-order-wrap" title="Display order (lower numbers appear first)">',
+        '      <span>Order</span>',
+        '      <input type="number" class="sp-order-input" data-index="' + i + '"' + disAttr +
+             ' value="' + orderVal + '" min="0" step="1">',
+        '    </label>',
         '    <button class="sp-edit-btn"' + disAttr + '   data-index="' + i + '">Edit</button>',
         '    <button class="sp-remove-btn"' + disAttr + ' data-index="' + i + '">Remove</button>',
         '  </div>',
@@ -528,6 +582,14 @@
     }).join('\n');
 
     list.innerHTML = html;
+
+    list.querySelectorAll('.sp-order-input').forEach(function (input) {
+      input.addEventListener('change', function () {
+        var idx = parseInt(input.dataset.index, 10);
+        window.CONFIG.extraElements[idx].order = parseInt(input.value, 10) || 0;
+        window.PAGE.render();
+      });
+    });
 
     list.querySelectorAll('.sp-edit-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -573,6 +635,13 @@
     if (cdTimeEl) cdTimeEl.value = cdParsed.time;
     if (cdTzEl)   { cdTzEl.value = cdParsed.tz; if (!cdTzEl.value) cdTzEl.value = '-05:00'; }
 
+    // Populate section order inputs
+    var so = window.CONFIG.sectionOrder || {};
+    panel.querySelectorAll('[data-order-section]').forEach(function (input) {
+      var key = input.dataset.orderSection;
+      input.value = so[key] != null ? so[key] : '';
+    });
+
     // Mark the active theme swatch
     var currentTheme = window.CONFIG.appearance.theme || 'burgundy';
     panel.querySelectorAll('.sp-swatch').forEach(function (btn) {
@@ -613,6 +682,16 @@
       if (cdTimeEl) cdTimeEl.addEventListener('change', syncCountdown);
       if (cdTzEl)   cdTzEl.addEventListener('change',  syncCountdown);
     }());
+
+    // Section order inputs → update sectionOrder in CONFIG + re-render
+    panel.querySelectorAll('[data-order-section]').forEach(function (input) {
+      input.addEventListener('change', function () {
+        var key = input.dataset.orderSection;
+        if (!window.CONFIG.sectionOrder) window.CONFIG.sectionOrder = {};
+        window.CONFIG.sectionOrder[key] = parseInt(input.value, 10) || 1;
+        window.PAGE.render();
+      });
+    });
 
     // Theme swatch buttons
     panel.querySelectorAll('.sp-swatch').forEach(function (btn) {
