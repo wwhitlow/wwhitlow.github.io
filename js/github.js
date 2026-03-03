@@ -22,6 +22,22 @@
   var TOKEN_KEY = 'gh_pat';   // localStorage key for the PAT
   var REPO_KEY  = 'gh_repo';  // localStorage key for "owner/repo-name"
 
+  // ── Template update constants ──────────────────────────────────────────
+  var TEMPLATE_REPO  = 'wwhitlow/wwhitlow.github.io';
+  var TEMPLATE_FILES = [
+    'index.html',
+    'css/themes.css',
+    'css/styles.css',
+    'js/page.js',
+    'js/settings.js',
+    'js/github.js',
+    'README.md',
+  ];
+  // config.js is handled separately during updates: the template's default
+  // structure is fetched and then the user's existing values are deep-merged
+  // on top, so new config fields get sensible defaults while all user data
+  // is preserved. See the performUpdate function below.
+
   // ── Status helper — updates the footer message in the settings panel ───
   function setStatus(msg, isError) {
     if (window.SETTINGS && typeof window.SETTINGS.setStatus === 'function') {
@@ -63,6 +79,29 @@
     var binary = '';
     bytes.forEach(function (b) { binary += String.fromCharCode(b); });
     return btoa(binary);
+  }
+
+  // ── Decode base64 to string, safely handling Unicode characters ──────
+  function fromBase64(b64str) {
+    var binary = atob(b64str);
+    var bytes  = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) { bytes[i] = binary.charCodeAt(i); }
+    return new TextDecoder().decode(bytes);
+  }
+
+  // ── Deep-merge source into target; arrays are replaced wholesale ──────
+  // Used during template updates to overlay the user's existing config values
+  // onto the template's default structure, so new fields arrive with defaults.
+  function deepMerge(target, source) {
+    Object.keys(source).forEach(function (key) {
+      if (source[key] !== null && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        if (!target[key] || typeof target[key] !== 'object') { target[key] = {}; }
+        deepMerge(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    });
+    return target;
   }
 
   // ── Auto-detect the repo from the GitHub Pages URL ────────────────────
@@ -368,6 +407,215 @@
     setStatus('Disconnected from GitHub. Click Save to reconnect.', false);
   }
 
+  // ── Template update helpers ────────────────────────────────────────────
+
+  // Fetch one file from the public template repo (no auth needed).
+  function fetchFromTemplate(path) {
+    return fetch('https://api.github.com/repos/' + TEMPLATE_REPO + '/contents/' + path)
+      .then(function (r) {
+        if (!r.ok) throw new Error('Template file not found: ' + path + ' (status ' + r.status + ')');
+        return r.json();
+      });
+  }
+
+  // Confirmation dialog — shown before any files are changed.
+  // Includes an "Export Settings First" button that triggers the download
+  // from settings.js, giving the user a safety copy before proceeding.
+  function showUpdateDialog(onConfirm) {
+    var dialog = document.createElement('div');
+    dialog.className = 'sp-token-dialog';
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-label', 'Update from Template');
+
+    dialog.innerHTML = [
+      '<div class="sp-token-dialog-inner">',
+      '  <h3>Update Site from Template</h3>',
+      '  <p>This replaces <code>index.html</code>, all CSS, and all JavaScript files with the latest version from the template repository.</p>',
+      '  <p><strong>Your settings are preserved.</strong> The update merges any new config fields from the template with your existing data \u2014 no customizations will be lost.</p>',
+      '  <p class="sp-hint">&#9888;&#65039; As a precaution, export your settings before continuing so you have a backup.</p>',
+      '  <button id="dlg-export-first" class="sp-update-export-btn">&#8595; Export My Settings First</button>',
+      '  <div class="sp-token-btns">',
+      '    <button id="dlg-update-cancel">Cancel</button>',
+      '    <button id="dlg-update-confirm">Update Now</button>',
+      '  </div>',
+      '</div>',
+    ].join('\n');
+
+    document.body.appendChild(dialog);
+
+    dialog.querySelector('#dlg-export-first').addEventListener('click', function () {
+      if (window.SETTINGS && typeof window.SETTINGS.exportConfig === 'function') {
+        window.SETTINGS.exportConfig();
+      }
+    });
+
+    dialog.querySelector('#dlg-update-cancel').addEventListener('click', function () {
+      document.body.removeChild(dialog);
+      setStatus('Update cancelled.', false);
+    });
+
+    dialog.querySelector('#dlg-update-confirm').addEventListener('click', function () {
+      document.body.removeChild(dialog);
+      onConfirm();
+    });
+  }
+
+  // Core update: use the Git Data API to create a single commit that
+  // replaces all TEMPLATE_FILES at once — clean git history.
+  function performUpdate(token, repo, updateBtn) {
+    var apiBase = 'https://api.github.com/repos/' + repo;
+    var headers = {
+      'Authorization':        'Bearer ' + token,
+      'Accept':               'application/vnd.github+json',
+      'Content-Type':         'application/json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    var updateStartTime = new Date();
+
+    if (updateBtn) updateBtn.disabled = true;
+    setStatus('Connecting to repository\u2026', false);
+
+    var defaultBranch, headSha, treeSha;
+
+    // Step 1 — get the default branch name (main vs master)
+    fetch(apiBase, { headers: headers })
+      .then(function (r) {
+        if (r.status === 401 || r.status === 403) {
+          localStorage.removeItem(TOKEN_KEY);
+          throw new Error('GitHub rejected the token. Click Connect to GitHub to re-enter it.');
+        }
+        if (!r.ok) throw new Error('Cannot access repository (status ' + r.status + ').');
+        return r.json();
+      })
+      .then(function (info) {
+        defaultBranch = info.default_branch || 'main';
+        setStatus('Reading current version\u2026', false);
+
+        // Step 2 — get HEAD ref → commit SHA
+        return fetch(apiBase + '/git/ref/heads/' + defaultBranch, { headers: headers })
+          .then(function (r) { return r.json(); })
+          .then(function (ref) {
+            headSha = ref.object.sha;
+
+            // Step 3 — get tree SHA from commit
+            return fetch(apiBase + '/git/commits/' + headSha, { headers: headers })
+              .then(function (r) { return r.json(); })
+              .then(function (commit) { treeSha = commit.tree.sha; });
+          });
+      })
+      .then(function () {
+        setStatus('Downloading template files\u2026', false);
+
+        // Step 4 — fetch each template file then create a blob in the user's repo
+        var blobs = [];
+        var chain = Promise.resolve();
+
+        TEMPLATE_FILES.forEach(function (path) {
+          chain = chain
+            .then(function () { return fetchFromTemplate(path); })
+            .then(function (templateFile) {
+              // GitHub Contents API returns content as base64 with embedded newlines — strip them.
+              var b64 = (templateFile.content || '').replace(/\n/g, '');
+              return fetch(apiBase + '/git/blobs', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ content: b64, encoding: 'base64' }),
+              });
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (blob) { blobs.push({ path: path, sha: blob.sha }); });
+        });
+
+        // After all TEMPLATE_FILES are blobs, fetch config.js from the template,
+        // parse its CONFIG structure, and deep-merge user's current values on top.
+        // This ensures new config fields introduced by the template arrive with
+        // sensible defaults while all existing user data is preserved intact.
+        return chain.then(function () {
+          setStatus('Merging config\u2026', false);
+          return fetchFromTemplate('config.js')
+            .then(function (templateConfigFile) {
+              var raw = fromBase64((templateConfigFile.content || '').replace(/\n/g, ''));
+              // Extract the JSON object from the `window.CONFIG = {...};` assignment
+              var marker  = 'window.CONFIG = ';
+              var start   = raw.indexOf(marker);
+              var jsonPart = raw.slice(start + marker.length).replace(/;\s*$/, '').trim();
+              var templateDefaults = JSON.parse(jsonPart);
+              // Template defaults are the base; user's live CONFIG is overlaid on top
+              var merged = deepMerge(JSON.parse(JSON.stringify(templateDefaults)), window.CONFIG);
+              return fetch(apiBase + '/git/blobs', {
+                method:  'POST',
+                headers: headers,
+                body:    JSON.stringify({ content: toBase64(serializeConfig(merged)), encoding: 'base64' }),
+              })
+                .then(function (r) { return r.json(); })
+                .then(function (blob) {
+                  blobs.push({ path: 'config.js', sha: blob.sha });
+                  return blobs;
+                });
+            });
+        });
+      })
+      .then(function (blobs) {
+        setStatus('Creating update commit\u2026', false);
+
+        // Step 5 — create a new tree overlaying the updated files
+        var treeItems = blobs.map(function (b) {
+          return { path: b.path, mode: '100644', type: 'blob', sha: b.sha };
+        });
+
+        return fetch(apiBase + '/git/trees', {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify({ base_tree: treeSha, tree: treeItems }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (newTree) {
+            // Step 6 — create commit
+            return fetch(apiBase + '/git/commits', {
+              method: 'POST',
+              headers: headers,
+              body: JSON.stringify({
+                message: 'Update site files from template (' + TEMPLATE_REPO + ')',
+                tree:    newTree.sha,
+                parents: [headSha],
+              }),
+            }).then(function (r) { return r.json(); });
+          });
+      })
+      .then(function (newCommit) {
+        // Step 7 — advance the branch ref to the new commit
+        return fetch(apiBase + '/git/refs/heads/' + defaultBranch, {
+          method: 'PATCH',
+          headers: headers,
+          body: JSON.stringify({ sha: newCommit.sha }),
+        });
+      })
+      .then(function () {
+        waitForDeployment(token, repo, updateStartTime, updateBtn);
+      })
+      .catch(function (err) {
+        setStatus('Update failed: ' + err.message, true);
+        if (updateBtn) updateBtn.disabled = false;
+      });
+  }
+
+  // ── Public update entry point ──────────────────────────────────────────
+  function update() {
+    var token = localStorage.getItem(TOKEN_KEY);
+    var repo  = localStorage.getItem(REPO_KEY) || detectRepo();
+
+    if (!token || !repo) {
+      setStatus('Connect to GitHub first before updating from template.', true);
+      return;
+    }
+
+    showUpdateDialog(function () {
+      var updateBtn = document.getElementById('spUpdateBtn');
+      performUpdate(token, repo, updateBtn);
+    });
+  }
+
   // ── Connect without saving — shows the token dialog, then unlocks the panel ─
   function connect() {
     showTokenSetup(function () {
@@ -381,6 +629,7 @@
     save:       save,
     disconnect: disconnect,
     connect:    connect,
+    update:     update,
   };
 
 }());

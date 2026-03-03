@@ -290,6 +290,7 @@
     '    <button class="sp-secondary-btn" id="spExportBtn" title="Download your settings as a backup file">&#8595; Export Settings</button>',
     '    <button class="sp-secondary-btn" id="spImportBtn" title="Restore settings from a backup file">&#8593; Import Settings</button>',
     '  </div>',
+    '  <button class="sp-secondary-btn sp-update-btn" id="spUpdateBtn" title="Replace site code with the latest version from the template repository">&#8635; Update from Template</button>',
     '</div>',
   ].join('\n');
 
@@ -719,11 +720,17 @@
     bindTabs(panel);
     bindInputs(panel);
 
-    // Export / Import buttons
+    // Export / Import / Update buttons
     var exportBtn = document.getElementById('spExportBtn');
     var importBtn = document.getElementById('spImportBtn');
+    var updateBtn = document.getElementById('spUpdateBtn');
     if (exportBtn) exportBtn.addEventListener('click', exportConfig);
     if (importBtn) importBtn.addEventListener('click', importConfig);
+    if (updateBtn) updateBtn.addEventListener('click', function () {
+      if (window.GITHUB && typeof window.GITHUB.update === 'function') {
+        window.GITHUB.update();
+      }
+    });
   }
 
   // ── Status message helper (called by github.js) ────────────────────────
@@ -741,7 +748,7 @@
   }
 
   // Expose setStatus so github.js can update the panel footer
-  window.SETTINGS = { setStatus: setStatus, refreshLock: refreshLock };
+  window.SETTINGS = { setStatus: setStatus, refreshLock: refreshLock, exportConfig: exportConfig };
 
   // Wait for DOM to be ready
   if (document.readyState === 'loading') {

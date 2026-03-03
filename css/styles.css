@@ -919,6 +919,32 @@ a:active                  { color: var(--color-primary-900); }
 }
 .sp-secondary-btn:hover { background: rgba(0, 0, 0, 0.05); color: var(--color-text-900); box-shadow: none; transform: none; }
 
+/* Update-from-template button — full-width, sits below the export/import row */
+.sp-update-btn {
+  width: 100%;
+  margin-top: 0.3rem;
+}
+
+/* "Export My Settings First" button inside the update confirmation dialog */
+.sp-update-export-btn {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.9rem;
+  margin-bottom: 0.25rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  background: none;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  color: var(--color-text-600);
+  cursor: pointer;
+  transition: background 150ms ease;
+  text-align: center;
+  box-shadow: none;
+  transform: none;
+}
+.sp-update-export-btn:hover { background: rgba(0, 0, 0, 0.05); box-shadow: none; transform: none; }
+
 .sp-save-status {
   font-size: 0.85rem;
   min-height: 1.2em;
