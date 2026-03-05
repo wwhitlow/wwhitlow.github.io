@@ -26,7 +26,7 @@ window.CONFIG = {
   "announcementTitle": {
     "prefix": "Announcing the Ordination of",
     "name": "NAME",
-    "suffix": "to the Sacred Order of Deacons",
+    "suffix": "to the Sacred Order of The Diaconate",
     "photoUrl": ""
   },
   "appearance": {
