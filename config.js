@@ -120,6 +120,12 @@ window.CONFIG = {
       "order": 0,
       "reference": "John 1:1",
       "text": "In the beginning was the Word"
+    },
+    {
+      "type": "customText",
+      "order": 0,
+      "heading": "New Section",
+      "body": "<p><a href=\"https://www.duckduckgo.com\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>LINK</strong></a></p>"
     }
   ]
 };
