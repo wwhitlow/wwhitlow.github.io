@@ -27,7 +27,6 @@
   var TEMPLATE_FILES = [
     'index.html',
     'config.js',        // replaced wholesale — users re-import their exported settings
-    '_version.json',    // version marker — stored in localStorage after update for change detection
     'css/themes.css',
     'css/styles.css',
     'js/page.js',
@@ -383,17 +382,21 @@
   }
 
   // ── Update availability check ──────────────────────────────────────────
-  // Fetches _version.json from the template repo and compares it to the
-  // version stored in localStorage (set automatically after each update).
-  // Result is cached for the browser session so repeated panel opens don't
-  // trigger multiple API calls.
+  // Uses the GitHub Releases API to fetch the latest published release from
+  // the template repo and compares its tag to the version stored in localStorage.
+  // Returns { available: bool, release: { tag, name, body, url } | null }.
+  // Result is cached per browser session so repeated panel opens don't
+  // trigger multiple API calls. A 404 (no releases yet) is silently ignored.
   var _updateAvailable = null;   // null = not yet checked this session
+  var _latestRelease   = null;   // release metadata when an update is available
 
   function checkForUpdates() {
-    if (_updateAvailable !== null) return Promise.resolve(_updateAvailable);
+    if (_updateAvailable !== null) {
+      return Promise.resolve({ available: _updateAvailable, release: _latestRelease });
+    }
 
     var token = localStorage.getItem(TOKEN_KEY);
-    if (!token) return Promise.resolve(false);
+    if (!token) return Promise.resolve({ available: false, release: null });
 
     var headers = {
       'Authorization':        'Bearer ' + token,
@@ -401,27 +404,45 @@
       'X-GitHub-Api-Version': '2022-11-28',
     };
 
-    return fetch('https://api.github.com/repos/' + TEMPLATE_REPO + '/contents/_version.json', { headers: headers })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (file) {
-        if (!file || !file.content) { _updateAvailable = false; return false; }
-        var raw = atob((file.content || '').replace(/\n/g, ''));
-        var templateVersion;
-        try { templateVersion = JSON.parse(raw).version; } catch (e) { _updateAvailable = false; return false; }
-
-        var siteVersion = localStorage.getItem('site_version');
-        if (!siteVersion) {
-          // First time connecting — baseline to current template version so no
-          // spurious "update available" fires for a freshly-installed site.
-          localStorage.setItem('site_version', templateVersion);
+    return fetch('https://api.github.com/repos/' + TEMPLATE_REPO + '/releases/latest', { headers: headers })
+      .then(function (r) {
+        if (r.status === 404) return null;   // no releases published yet — not an error
+        return r.ok ? r.json() : null;
+      })
+      .then(function (release) {
+        if (!release || !release.tag_name) {
           _updateAvailable = false;
-          return false;
+          _latestRelease   = null;
+          return { available: false, release: null };
         }
 
-        _updateAvailable = (templateVersion !== siteVersion);
-        return _updateAvailable;
+        var templateTag = release.tag_name;
+        var siteVersion = localStorage.getItem('site_version');
+
+        if (!siteVersion) {
+          // First connection — baseline to the current release tag so no
+          // spurious "update available" fires for a freshly-installed site.
+          localStorage.setItem('site_version', templateTag);
+          _updateAvailable = false;
+          _latestRelease   = null;
+          return { available: false, release: null };
+        }
+
+        _updateAvailable = (templateTag !== siteVersion);
+        _latestRelease   = _updateAvailable ? {
+          tag:  release.tag_name,
+          name: release.name || ('Update ' + release.tag_name),
+          body: release.body || '',
+          url:  release.html_url || '',
+        } : null;
+
+        return { available: _updateAvailable, release: _latestRelease };
       })
-      .catch(function () { _updateAvailable = false; return false; });
+      .catch(function () {
+        _updateAvailable = false;
+        _latestRelease   = null;
+        return { available: false, release: null };
+      });
   }
 
   // ── Template update helpers ────────────────────────────────────────────
@@ -582,15 +603,23 @@
         });
       })
       .then(function () {
-        // Store the new template version so the update-available check resets.
-        // _version.json was committed above as part of TEMPLATE_FILES.
-        return fetchFromTemplate('_version.json')
-          .then(function (vf) {
-            var raw = atob((vf.content || '').replace(/\n/g, ''));
-            try { localStorage.setItem('site_version', JSON.parse(raw).version); } catch (e) {}
-            _updateAvailable = null;   // invalidate session cache
+        // Store the new release tag so the update-available check correctly
+        // shows "up to date" until the next release is published.
+        var releaseHeaders = {
+          'Authorization':        'Bearer ' + token,
+          'Accept':               'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28',
+        };
+        return fetch('https://api.github.com/repos/' + TEMPLATE_REPO + '/releases/latest', { headers: releaseHeaders })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (release) {
+            if (release && release.tag_name) {
+              localStorage.setItem('site_version', release.tag_name);
+            }
+            _updateAvailable = null;
+            _latestRelease   = null;
           })
-          .catch(function () { _updateAvailable = null; });
+          .catch(function () { _updateAvailable = null; _latestRelease = null; });
       })
       .then(function () {
         waitForDeployment(token, repo, updateStartTime, updateBtn);

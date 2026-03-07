@@ -48,13 +48,16 @@
     '  <button class="sp-close" id="spClose" aria-label="Close settings">&times;</button>',
     '</div>',
 
-    // Update-available banner — shown only when connected AND a new template version exists
+    // Update-available banner — shown only when connected AND a newer release exists
     '<div class="sp-update-banner" id="spUpdateBanner" style="display:none">',
     '  <div class="sp-update-banner-icon">&#8679;</div>',
     '  <div class="sp-update-banner-body">',
-    '    <strong>Template update available</strong>',
-    '    <p>A new version of this template is ready with new features or fixes.</p>',
-    '    <button class="sp-connect-btn" id="spUpdateBannerBtn">Update Now &rsaquo;</button>',
+    '    <strong id="spUpdateBannerTitle">Template update available</strong>',
+    '    <p id="spUpdateBannerDesc">A new version of this template is ready with new features or fixes.</p>',
+    '    <div class="sp-update-banner-actions">',
+    '      <a id="spUpdateBannerLink" class="sp-update-banner-link" target="_blank" rel="noopener noreferrer" style="display:none">View release notes &#8599;</a>',
+    '      <button class="sp-connect-btn" id="spUpdateBannerBtn">Update Now &rsaquo;</button>',
+    '    </div>',
     '  </div>',
     '</div>',
 
@@ -347,6 +350,20 @@
     '</div>',
   ].join('\n');
 
+  // ── Strip markdown for plain-text banner excerpts ─────────────────────
+  function stripMarkdown(text) {
+    return (text || '')
+      .replace(/#{1,6}\s+/g, '')                  // headings
+      .replace(/\*\*(.+?)\*\*/g, '$1')            // bold
+      .replace(/\*(.+?)\*/g, '$1')                // italic
+      .replace(/`(.+?)`/g, '$1')                  // inline code
+      .replace(/\[(.+?)\]\(.+?\)/g, '$1')         // links → label only
+      .replace(/^[-*+]\s+/gm, '\u2022 ')          // list markers
+      .replace(/\r?\n\r?\n/g, ' \u2013 ')         // paragraph breaks → dash
+      .replace(/\r?\n/g, ' ')                      // line breaks → space
+      .trim();
+  }
+
   // ── Quill rich-text editor — lazy CDN load ────────────────────────────
   // Quill is only loaded the first time a customText element's edit form is
   // opened, so regular site visitors never download it.
@@ -527,8 +544,31 @@
       if (locked) {
         updateBanner.style.display = 'none';
       } else if (window.GITHUB && typeof window.GITHUB.checkForUpdates === 'function') {
-        window.GITHUB.checkForUpdates().then(function (available) {
-          updateBanner.style.display = available ? 'flex' : 'none';
+        window.GITHUB.checkForUpdates().then(function (result) {
+          if (!result || !result.available) { updateBanner.style.display = 'none'; return; }
+
+          // Populate banner with release metadata from GitHub
+          var titleEl = document.getElementById('spUpdateBannerTitle');
+          var descEl  = document.getElementById('spUpdateBannerDesc');
+          var linkEl  = document.getElementById('spUpdateBannerLink');
+
+          if (titleEl) {
+            titleEl.textContent = (result.release && result.release.name)
+              ? result.release.name
+              : 'Template update available';
+          }
+          if (descEl && result.release && result.release.body) {
+            var excerpt = stripMarkdown(result.release.body);
+            descEl.textContent = excerpt.length > 160
+              ? excerpt.slice(0, 157) + '\u2026'
+              : excerpt;
+          }
+          if (linkEl && result.release && result.release.url) {
+            linkEl.href         = result.release.url;
+            linkEl.style.display = '';
+          }
+
+          updateBanner.style.display = 'flex';
         });
       }
     }
