@@ -125,7 +125,7 @@ window.CONFIG = {
       "type": "customText",
       "order": 0,
       "heading": "New Section",
-      "body": "<p><a href=\"https://www.duckduckgo.com\" rel=\"noopener noreferrer\" target=\"_blank\">Link</a></p>"
+      "body": "<p><a href=\"https://www.duckduckgo.com\" rel=\"noopener noreferrer\" target=\"_blank\"><strong>LINK</strong></a></p>"
     }
   ]
 };
