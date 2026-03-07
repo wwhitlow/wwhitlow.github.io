@@ -26,7 +26,7 @@ window.CONFIG = {
   "announcementTitle": {
     "prefix": "Announcing the Ordination of",
     "name": "NAME",
-    "suffix": "to the Sacred Order of Deacons",
+    "suffix": "to the Sacred Order of The Diaconate",
     "photoUrl": ""
   },
   "appearance": {
@@ -46,15 +46,15 @@ window.CONFIG = {
   },
   "sectionOrder": {
     "announcementTitle": 1,
-    "countdown":         2,
-    "hero":              3,
-    "detailsRow":        4,
-    "catechesis":        5,
-    "livestream":        6,
-    "rsvp":              7,
-    "ordinationMass":    8,
-    "thanksgivingMass":  9,
-    "extras":           10
+    "countdown": 2,
+    "hero": 3,
+    "detailsRow": 4,
+    "catechesis": 5,
+    "livestream": 6,
+    "rsvp": 11,
+    "ordinationMass": 8,
+    "thanksgivingMass": 9,
+    "extras": 10
   },
   "countdown": {
     "targetDate": "2026-05-23T10:00:00-04:00",
