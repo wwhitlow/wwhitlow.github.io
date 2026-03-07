@@ -194,10 +194,13 @@
         ].join('\n');
 
       case 'customText':
+        // el.body may be plain text (legacy) or HTML from the rich-text editor.
+        // The site owner writes this via the settings panel — it is not user-submitted
+        // public input — so rendering as HTML is appropriate here.
         return [
           '<section class="card custom-text-block">',
           '  <h2>' + esc(el.heading) + '</h2>',
-          '  <p>' + esc(el.body) + '</p>',
+          '  <div class="custom-text-body">' + (el.body || '') + '</div>',
           '</section>',
         ].join('\n');
 

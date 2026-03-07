@@ -803,6 +803,57 @@ a:active                  { color: var(--color-primary-900); }
   flex-shrink: 0;
 }
 
+/* ── Update-available notification banner ───────────────────────────────── */
+.sp-update-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(212, 168, 67, 0.12);
+  border: 1px solid var(--color-accent, #d4a843);
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+.sp-update-banner-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--color-accent, #d4a843);
+}
+.sp-update-banner-body { flex: 1; min-width: 0; }
+.sp-update-banner-body strong { display: block; font-size: 0.9rem; margin-bottom: 0.15rem; }
+.sp-update-banner-body p { font-size: 0.8rem; margin: 0 0 0.5rem; color: var(--color-text-600); }
+
+/* ── Custom Text rich-text output ───────────────────────────────────────── */
+.custom-text-body { line-height: 1.7; }
+.custom-text-body p { margin: 0.5em 0; }
+.custom-text-body p:first-child { margin-top: 0; }
+.custom-text-body p:last-child  { margin-bottom: 0; }
+.custom-text-body a { color: var(--color-primary-500); text-decoration: underline; }
+.custom-text-body a:hover { color: var(--color-primary-700); }
+.custom-text-body ul,
+.custom-text-body ol { padding-left: 1.5em; margin: 0.5em 0; }
+.custom-text-body strong { font-weight: 600; }
+.custom-text-body em { font-style: italic; }
+
+/* ── Quill editor inside the settings panel ─────────────────────────────── */
+.sp-quill-container { margin-top: 0.15rem; }
+.sp-quill-container .ql-toolbar {
+  border-radius: 6px 6px 0 0;
+  border-color: rgba(0, 0, 0, 0.18);
+  font-family: inherit;
+}
+.sp-quill-container .ql-container {
+  border-radius: 0 0 6px 6px;
+  border-color: rgba(0, 0, 0, 0.18);
+  min-height: 8rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+.sp-quill-container .ql-editor { min-height: 8rem; }
+/* Ensure the Quill link-edit tooltip isn't clipped by the panel overflow */
+.settings-panel .ql-tooltip { z-index: 10000; }
+
 .sp-section-order-row {
   display: flex;
   align-items: center;

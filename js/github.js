@@ -27,6 +27,7 @@
   var TEMPLATE_FILES = [
     'index.html',
     'config.js',        // replaced wholesale — users re-import their exported settings
+    '_version.json',    // version marker — stored in localStorage after update for change detection
     'css/themes.css',
     'css/styles.css',
     'js/page.js',
@@ -381,6 +382,48 @@
     setStatus('Disconnected from GitHub. Click Save to reconnect.', false);
   }
 
+  // ── Update availability check ──────────────────────────────────────────
+  // Fetches _version.json from the template repo and compares it to the
+  // version stored in localStorage (set automatically after each update).
+  // Result is cached for the browser session so repeated panel opens don't
+  // trigger multiple API calls.
+  var _updateAvailable = null;   // null = not yet checked this session
+
+  function checkForUpdates() {
+    if (_updateAvailable !== null) return Promise.resolve(_updateAvailable);
+
+    var token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return Promise.resolve(false);
+
+    var headers = {
+      'Authorization':        'Bearer ' + token,
+      'Accept':               'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+
+    return fetch('https://api.github.com/repos/' + TEMPLATE_REPO + '/contents/_version.json', { headers: headers })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (file) {
+        if (!file || !file.content) { _updateAvailable = false; return false; }
+        var raw = atob((file.content || '').replace(/\n/g, ''));
+        var templateVersion;
+        try { templateVersion = JSON.parse(raw).version; } catch (e) { _updateAvailable = false; return false; }
+
+        var siteVersion = localStorage.getItem('site_version');
+        if (!siteVersion) {
+          // First time connecting — baseline to current template version so no
+          // spurious "update available" fires for a freshly-installed site.
+          localStorage.setItem('site_version', templateVersion);
+          _updateAvailable = false;
+          return false;
+        }
+
+        _updateAvailable = (templateVersion !== siteVersion);
+        return _updateAvailable;
+      })
+      .catch(function () { _updateAvailable = false; return false; });
+  }
+
   // ── Template update helpers ────────────────────────────────────────────
 
   // Fetch one file from the public template repo (no auth needed).
@@ -539,6 +582,17 @@
         });
       })
       .then(function () {
+        // Store the new template version so the update-available check resets.
+        // _version.json was committed above as part of TEMPLATE_FILES.
+        return fetchFromTemplate('_version.json')
+          .then(function (vf) {
+            var raw = atob((vf.content || '').replace(/\n/g, ''));
+            try { localStorage.setItem('site_version', JSON.parse(raw).version); } catch (e) {}
+            _updateAvailable = null;   // invalidate session cache
+          })
+          .catch(function () { _updateAvailable = null; });
+      })
+      .then(function () {
         waitForDeployment(token, repo, updateStartTime, updateBtn);
       })
       .catch(function (err) {
@@ -573,10 +627,11 @@
   }
 
   window.GITHUB = {
-    save:       save,
-    disconnect: disconnect,
-    connect:    connect,
-    update:     update,
+    save:            save,
+    disconnect:      disconnect,
+    connect:         connect,
+    update:          update,
+    checkForUpdates: checkForUpdates,
   };
 
 }());
