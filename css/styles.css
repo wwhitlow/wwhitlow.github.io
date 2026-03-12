@@ -1036,6 +1036,21 @@ a:active                  { color: var(--color-primary-900); }
   margin-top: 0.3rem;
 }
 
+.sp-qr-btn {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: var(--color-primary-500);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+.sp-qr-btn:hover { background: var(--color-primary-700); }
+
 /* "Export My Settings First" button inside the update confirmation dialog */
 .sp-update-export-btn {
   display: block;

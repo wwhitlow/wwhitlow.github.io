@@ -79,6 +79,7 @@
     '  <button class="sp-tab"        data-tab="appearance" role="tab">Appearance</button>',
     '  <button class="sp-tab"        data-tab="sections"   role="tab">Sections</button>',
     '  <button class="sp-tab"        data-tab="add"        role="tab">Add Elements</button>',
+    '  <button class="sp-tab"        data-tab="qrcode"     role="tab">QR Code</button>',
     '</nav>',
 
     // ── TAB: Identity ────────────────────────────────────────────────────
@@ -336,6 +337,12 @@
     '  </div>',
     '  <p class="sp-extras-list-label">Added Elements</p>',
     '  <div id="sp-extras-list"></div>',
+    '</section>',
+
+    // ── TAB: QR Code ─────────────────────────────────────────────────────
+    '<section class="sp-tab-content" data-panel="qrcode">',
+    '  <p class="sp-hint">Generate a QR code for this page so guests can scan it with their phone.</p>',
+    '  <button class="sp-qr-btn" id="spQrBtn">&#9639; Generate QR Code</button>',
     '</section>',
 
     // ── Footer: Save button ──────────────────────────────────────────────
@@ -921,6 +928,16 @@
 
     bindTabs(panel);
     bindInputs(panel);
+
+    // QR Code button — replace QR_SERVICE with the real service URL
+    // The current page URL is appended as a query parameter at click time.
+    var QR_SERVICE = 'https://www.williamcwhitlow.com/qr-code-generator?url=';
+    var qrBtn = document.getElementById('spQrBtn');
+    if (qrBtn) {
+      qrBtn.addEventListener('click', function () {
+        window.open(QR_SERVICE + encodeURIComponent(window.location.href), '_blank', 'noopener,noreferrer');
+      });
+    }
 
     // Update-available banner button
     var updateBannerBtn = document.getElementById('spUpdateBannerBtn');
